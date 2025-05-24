@@ -32,6 +32,7 @@ import 'app/ui/pages/app_settings_page.dart'; // Added for AppSettingsPage
 import 'app/ui/pages/terms_conditions_page.dart'; // Added for TermsConditionsPage
 import 'app/ui/pages/user_agreements_page.dart'; // Added for UserAgreementsPage
 import 'app/ui/pages/help_customer_service_page.dart'; // Added for HelpCustomerServicePage
+import 'app/ui/pages/splash_screen.dart'; // Added for SplashScreen
 import 'app/utils/colors.dart';
 import 'firebase_options.dart';
 import 'app/binding/main_screen_binding.dart';
@@ -143,33 +144,11 @@ class DhankuberApp extends StatelessWidget {
           textTheme: ButtonTextTheme.primary,
         ),
       ),
-      initialRoute: '/initial',
+      initialRoute: '/splash',
       getPages: [
         GetPage(
-          name: '/initial',
-          page: () => FutureBuilder<String>(
-            future: _getInitialRoute(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                if (kDebugMode) {
-                  print('Initial route loading...');
-                }
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
-              }
-              if (kDebugMode) {
-                print('Initial route loaded: ${snapshot.data}');
-              }
-              // Navigate to the determined route
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                Get.offAllNamed(snapshot.data ?? '/login');
-              });
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            },
-          ),
+          name: '/splash',
+          page: () => SplashScreen(initialRouteFuture: _getInitialRoute()),
         ),
         GetPage(
           name: '/login',
