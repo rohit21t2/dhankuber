@@ -26,6 +26,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_native_splash: ^2.4.1 # Added for native splash screen
 
 flutter:
   uses-material-design: true
@@ -35,7 +36,7 @@ flutter:
     - assets/images/logo.png
     - assets/icons/
     - assets/lottie/
-    - assets/lottie/tick.json # Added for tick animation
+    - assets/lottie/tick.json
   fonts:
     - family: Poppins
       fonts:
@@ -47,3 +48,12 @@ flutter:
         - asset: assets/fonts/OpenSans-Regular.ttf
         - asset: assets/fonts/OpenSans-Bold.ttf
           weight: 700
+
+flutter_native_splash:
+  color: "#F5F7FA" # Matches AppColors.background (assumed to be #F5F7FA, adjust if different)
+  image: assets/images/logo.png
+  android: true
+  ios: true
+  android_12:
+    image: assets/images/logo.png
+    color: "#F5F7FA"
