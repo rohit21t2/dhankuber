@@ -26,7 +26,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  flutter_launcher_icons: ^0.14.0
 
 flutter:
   uses-material-design: true
@@ -36,6 +35,7 @@ flutter:
     - assets/images/logo.png
     - assets/icons/
     - assets/lottie/
+    - assets/lottie/tick.json # Added for tick animation
   fonts:
     - family: Poppins
       fonts:
@@ -47,9 +47,3 @@ flutter:
         - asset: assets/fonts/OpenSans-Regular.ttf
         - asset: assets/fonts/OpenSans-Bold.ttf
           weight: 700
-
-flutter_launcher_icons:
-  android: "launcher_icon"
-  ios: true
-  image_path: "assets/images/logo.png"
-  min_sdk_android: 21
