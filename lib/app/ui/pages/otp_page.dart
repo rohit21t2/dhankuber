@@ -70,6 +70,11 @@ class _OTPPageState extends State<OTPPage> {
     }
   }
 
+  // Check if all OTP digits are filled
+  bool _isOtpComplete() {
+    return controller.otp.every((digit) => digit.isNotEmpty);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,6 +145,11 @@ class _OTPPageState extends State<OTPPage> {
                                   _focusNodes[index + 1].requestFocus();
                                 } else {
                                   _focusNodes[index].unfocus();
+                                  // Auto-process OTP when the 6th digit is entered
+                                  if (_isOtpComplete()) {
+                                    print('Auto-processing OTP at 09:57 PM IST, May 24, 2025');
+                                    controller.verifyOTP();
+                                  }
                                 }
                               } else {
                                 controller.otp[index] = '';
@@ -161,7 +171,7 @@ class _OTPPageState extends State<OTPPage> {
                   TextButton(
                     onPressed: controller.canResendOTP.value
                         ? () {
-                      print('Resend OTP clicked at 03:55 PM IST, May 24, 2025');
+                      print('Resend OTP clicked at 09:57 PM IST, May 24, 2025');
                       controller.sendOTP();
                       _startCountdown(); // Restart the countdown
                     }
@@ -179,7 +189,7 @@ class _OTPPageState extends State<OTPPage> {
                   CustomButton(
                     text: 'Verify OTP',
                     onPressed: () {
-                      print('Verify OTP clicked at 03:55 PM IST, May 24, 2025');
+                      print('Verify OTP clicked at 09:57 PM IST, May 24, 2025');
                       controller.verifyOTP();
                     },
                   ),

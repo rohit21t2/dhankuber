@@ -12,6 +12,11 @@ import '../ui/pages/main_screen.dart';
 import '../ui/pages/name_input_page.dart';
 import '../ui/pages/otp_page.dart';
 import '../ui/pages/security_check_page.dart';
+import '../controllers/home_controller.dart'; // Added for reinitialization
+import '../controllers/fd_plans_controller.dart'; // Added for reinitialization
+import '../controllers/portfolio_controller.dart'; // Added for reinitialization
+import '../controllers/payments_controller.dart'; // Added for reinitialization
+import '../controllers/profile_controller.dart'; // Added for reinitialization
 
 class AuthController extends GetxController {
   final phoneNumber = ''.obs;
@@ -50,7 +55,7 @@ class AuthController extends GetxController {
           .collection('transactions')
           .where('phoneNumber', isEqualTo: phoneNumber)
           .where('status', isEqualTo: 'pending')
-          .get();
+          .get(const GetOptions(source: Source.cache)); // Use cache-first strategy
       bool hasPending = transactions.docs.isNotEmpty;
       if (kDebugMode) {
         print('Checked transactions for $phoneNumber: ${hasPending ? "Pending transactions found" : "No pending transactions"} at ${_getFormattedTime()}');
@@ -207,7 +212,24 @@ class AuthController extends GetxController {
             print('Auto-verification completed at ${_getFormattedTime()}');
           }
           await _auth.signInWithCredential(credential);
-          await _handleVerificationSuccess();
+
+          // Preload user data for auto-verification case
+          String? phone = _auth.currentUser?.phoneNumber ?? phoneNumber.value;
+          Future<DocumentSnapshot> userDocFuture;
+          if (phone.isNotEmpty) {
+            userDocFuture = _firestore
+                .collection('users')
+                .doc(phone)
+                .get(const GetOptions(source: Source.cache)); // Use cache-first strategy
+            if (kDebugMode) {
+              print('Preloading user data for phone: $phone in auto-verification at ${_getFormattedTime()}');
+            }
+          } else {
+            userDocFuture = Future.value(DocumentSnapshotMock(exists: false));
+          }
+
+          DocumentSnapshot userDoc = await userDocFuture;
+          await _handleVerificationSuccess(userDoc: userDoc);
         },
         verificationFailed: (FirebaseAuthException e) {
           if (kDebugMode) {
@@ -268,7 +290,7 @@ class AuthController extends GetxController {
     final now = DateTime.now();
     final timeSinceLastOTP = now.difference(lastOTPSentTime.value).inSeconds;
     if (timeSinceLastOTP < 1) {
-      if (kDebugMode) {
+      if (kDebugMode)  {
         print('sendOTPForMPINReset blocked: Cooldown period, wait ${1 - timeSinceLastOTP}s at ${_getFormattedTime()}');
       }
       Get.snackbar('Please Wait', 'Please wait ${1 - timeSinceLastOTP}s before retrying',
@@ -354,6 +376,22 @@ class AuthController extends GetxController {
     if (kDebugMode) {
       print('verifyOTP called at ${_getFormattedTime()}, OTP: ${otp.join()}, verificationId: ${verificationId.value}, UID: ${_auth.currentUser?.uid}, Phone: ${_auth.currentUser?.phoneNumber}');
     }
+
+    // Preload user data in the background while verifying OTP
+    String? phone = _auth.currentUser?.phoneNumber ?? phoneNumber.value;
+    Future<DocumentSnapshot> userDocFuture;
+    if (phone.isNotEmpty) {
+      userDocFuture = _firestore
+          .collection('users')
+          .doc(phone)
+          .get(const GetOptions(source: Source.cache)); // Use cache-first strategy
+      if (kDebugMode) {
+        print('Preloading user data for phone: $phone at ${_getFormattedTime()}');
+      }
+    } else {
+      userDocFuture = Future.value(DocumentSnapshotMock(exists: false));
+    }
+
     String enteredOTP = otp.join();
     if (verificationId.value.isEmpty) {
       if (kDebugMode) {
@@ -374,7 +412,20 @@ class AuthController extends GetxController {
       if (kDebugMode) {
         print('OTP verified successfully at ${_getFormattedTime()}');
       }
-      await _handleVerificationSuccess();
+
+      // Reinitialize controllers after successful OTP verification
+      Get.lazyPut(() => HomeController(), fenix: true);
+      Get.lazyPut(() => FDPlansController(), fenix: true);
+      Get.lazyPut(() => PortfolioController(), fenix: true);
+      Get.lazyPut(() => PaymentsController(), fenix: true);
+      Get.lazyPut(() => ProfileController(), fenix: true);
+      if (kDebugMode) {
+        print('Controllers reinitialized after OTP verification at ${_getFormattedTime()}');
+      }
+
+      // Wait for user data to be preloaded
+      DocumentSnapshot userDoc = await userDocFuture;
+      await _handleVerificationSuccess(userDoc: userDoc);
     } on FirebaseAuthException catch (e) {
       if (kDebugMode) {
         print('OTP verification failed: ${e.code} - ${e.message} at ${_getFormattedTime()}');
@@ -442,7 +493,7 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> _handleVerificationSuccess() async {
+  Future<void> _handleVerificationSuccess({required DocumentSnapshot userDoc}) async {
     isLoading.value = true;
     if (kDebugMode) {
       print('Handling verification success at ${_getFormattedTime()}, UID: ${_auth.currentUser?.uid}, Phone: ${_auth.currentUser?.phoneNumber}');
@@ -472,13 +523,10 @@ class AuthController extends GetxController {
         return;
       }
 
-      DocumentSnapshot userDoc = await _firestore
-          .collection('users')
-          .doc(phone)
-          .get();
-      if (kDebugMode) {
-        print('Firestore query result: exists=${userDoc.exists}, data=${userDoc.data()} at ${_getFormattedTime()}');
-      }
+      // Read secure storage values once
+      String? biometricEnabled = await _secureStorage.read(key: 'biometric_enabled');
+      String? mpinEnabled = await _secureStorage.read(key: 'mpin_enabled');
+      bool isSecurityEnabled = biometricEnabled == 'true' || mpinEnabled == 'true';
 
       if (userDoc.exists) {
         Timestamp? deleteAfter;
@@ -523,9 +571,6 @@ class AuthController extends GetxController {
           print('User found: ${name.value} at ${_getFormattedTime()}');
         }
 
-        String? biometricEnabled = await _secureStorage.read(key: 'biometric_enabled');
-        String? mpinEnabled = await _secureStorage.read(key: 'mpin_enabled');
-        bool isSecurityEnabled = biometricEnabled == 'true' || mpinEnabled == 'true';
         if (isSecurityEnabled) {
           if (kDebugMode) {
             print('Security enabled, redirecting to SecurityCheckPage at ${_getFormattedTime()}');
@@ -807,4 +852,29 @@ class AuthController extends GetxController {
       isLoading.value = false;
     }
   }
+}
+
+// Mock DocumentSnapshot for when userDoc cannot be fetched early
+class DocumentSnapshotMock implements DocumentSnapshot {
+  final bool exists;
+
+  DocumentSnapshotMock({required this.exists});
+
+  @override
+  dynamic get(Object field) => null;
+
+  @override
+  dynamic operator [](Object field) => null;
+
+  @override
+  String get id => '';
+
+  @override
+  DocumentReference get reference => throw UnimplementedError();
+
+  @override
+  Map<String, dynamic>? data() => null;
+
+  @override
+  SnapshotMetadata get metadata => throw UnimplementedError();
 }
