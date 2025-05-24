@@ -57,13 +57,15 @@ void main() async {
     print('Firebase Auth session persistence is handled automatically on Android');
   }
 
-  // Initialize all controllers
+  // Initialize only the AuthController in main.dart
   Get.put(AuthController());
-  Get.put(HomeController());
-  Get.put(FDPlansController()); // Added for FDPlansController
-  Get.put(PortfolioController()); // Added for PortfolioController
-  Get.put(PaymentsController()); // Added for PaymentsController
-  Get.put(ProfileController()); // Added for ProfileController
+
+  // Lazily initialize other controllers to avoid heavy initialization at startup
+  Get.lazyPut(() => HomeController());
+  Get.lazyPut(() => FDPlansController());
+  Get.lazyPut(() => PortfolioController());
+  Get.lazyPut(() => PaymentsController());
+  Get.lazyPut(() => ProfileController());
 
   runApp(const DhankuberApp());
 }

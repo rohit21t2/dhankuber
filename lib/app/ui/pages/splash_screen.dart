@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import '../../utils/colors.dart';
+import '../components/custom_appbar.dart'; // Added for CustomAppBar
 
 class SplashScreen extends StatefulWidget {
   final Future<String> initialRouteFuture;
@@ -14,47 +15,28 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
-  final List<Map<String, dynamic>> _features = [
-    {'text': 'Highest FD rates from banks', 'controller': null},
-    {'text': 'All RBI-licensed Banks & NBFCs', 'controller': null},
-    {'text': 'FDs up to ₹5L safe (RBI DICGC)', 'controller': null},
-    {'text': 'Diversify FDs across banks', 'controller': null},
-    {'text': 'No bank account needed', 'controller': null},
-    {'text': 'Direct deposit to bank', 'controller': null},
-    {'text': 'Premature withdrawal to bank', 'controller': null},
-    {'text': 'FD receipts emailed directly', 'controller': null},
-    {'text': 'Open FD via UPI payment', 'controller': null},
-  ];
-  final List<Map<String, dynamic>> _visibleFeatures = [];
-  late Timer _timer;
+  final List<AnimationController> _tickControllers = [];
 
   @override
   void initState() {
     super.initState();
-    // Initialize animation controllers for each feature
-    for (var feature in _features) {
-      feature['controller'] = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 500),
-      );
+    // Initialize 9 tick animation controllers (one for each feature)
+    for (int i = 0; i < 9; i++) {
+      final controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+      _tickControllers.add(controller);
     }
 
-    // Add features one by one with a delay
-    int index = 0;
-    Timer.periodic(const Duration(milliseconds: 500), (timer) {
-      if (index < _features.length) {
-        setState(() {
-          _visibleFeatures.add(_features[index]);
-        });
-        _features[index]['controller'].forward();
-        index++;
-      } else {
-        timer.cancel();
-      }
-    });
+    // Start tick animations sequentially with a delay
+    for (int i = 0; i < _tickControllers.length; i++) {
+      Future.delayed(Duration(milliseconds: i * 300), () {
+        if (mounted) {
+          _tickControllers[i].forward();
+        }
+      });
+    }
 
-    // Navigate after 5 seconds
-    _timer = Timer(const Duration(seconds: 5), () async {
+    // Navigate after all animations complete (9 features × 300ms delay each = 2700ms total)
+    Future.delayed(const Duration(milliseconds: 2700), () async {
       final route = await widget.initialRouteFuture;
       Get.offAllNamed(route);
     });
@@ -62,10 +44,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   void dispose() {
-    for (var feature in _features) {
-      feature['controller'].dispose();
+    for (var controller in _tickControllers) {
+      controller.dispose();
     }
-    _timer.cancel();
     super.dispose();
   }
 
@@ -73,6 +54,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: const CustomAppBar(title: ''), // Empty title to keep AppBar blank
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
         child: Column(
@@ -86,46 +68,50 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               fit: BoxFit.cover,
             ),
             const SizedBox(height: 32),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _visibleFeatures.length,
-                itemBuilder: (context, index) {
-                  final feature = _visibleFeatures[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          feature['text'],
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontFamily: 'OpenSans',
-                            fontSize: 16,
-                            color: AppColors.primaryText,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: Lottie.asset(
-                            'assets/lottie/tick.json',
-                            controller: feature['controller'],
-                            repeat: false,
-                            onLoaded: (composition) {
-                              feature['controller'].duration = composition.duration;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
+            _buildFeatureRow('Highest FD rates from banks', 0),
+            _buildFeatureRow('All RBI-licensed Banks & NBFCs', 1),
+            _buildFeatureRow('FDs up to ₹5L safe (RBI DICGC)', 2),
+            _buildFeatureRow('Diversify FDs across banks', 3),
+            _buildFeatureRow('No bank account needed', 4),
+            _buildFeatureRow('Direct deposit to bank', 5),
+            _buildFeatureRow('Premature withdrawal to bank', 6),
+            _buildFeatureRow('FD receipts emailed directly', 7),
+            _buildFeatureRow('Open FD via UPI payment', 8),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureRow(String text, int index) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            text,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontFamily: 'OpenSans',
+              fontSize: 16,
+              color: AppColors.primaryText,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Lottie.asset(
+              'assets/lottie/tick.json',
+              controller: _tickControllers[index],
+              repeat: false,
+              onLoaded: (composition) {
+                _tickControllers[index].duration = composition.duration;
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
