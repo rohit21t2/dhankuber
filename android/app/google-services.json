@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1019796244455",
+    "project_id": "dhan-kuber-app",
+    "storage_bucket": "dhan-kuber-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1019796244455:android:895264dab5460722911f42",
+        "android_client_info": {
+          "package_name": "com.app.dhankuber"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpFerdPmNesfEGsCXczYjs3uiBXuFxqJE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

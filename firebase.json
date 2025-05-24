@@ -1,0 +1,45 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "dhan-kuber-app",
+          "appId": "1:1019796244455:android:895264dab5460722911f42",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "dhan-kuber-app",
+          "configurations": {
+            "android": "1:1019796244455:android:895264dab5460722911f42",
+            "ios": "1:1019796244455:ios:38da71d433742ffc911f42",
+            "macos": "1:1019796244455:ios:38da71d433742ffc911f42",
+            "web": "1:1019796244455:web:b6d54d64e6a59dd0911f42",
+            "windows": "1:1019796244455:web:b6b30b2d5dec0f69911f42"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}

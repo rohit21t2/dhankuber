@@ -1,0 +1,265 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart'; // Added for kDebugMode
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart'; // Import intl for date formatting
+import 'app/controllers/auth_controller.dart';
+import 'app/controllers/home_controller.dart';
+import 'app/controllers/fd_plans_controller.dart'; // Added for FDPlansController
+import 'app/controllers/portfolio_controller.dart'; // Added for PortfolioController
+import 'app/controllers/payments_controller.dart'; // Added for PaymentsController
+import 'app/controllers/profile_controller.dart'; // Added for ProfileController
+import 'app/ui/pages/login_page.dart';
+import 'app/ui/pages/otp_page.dart'; // Added for OTPPage
+import 'app/ui/pages/name_input_page.dart'; // Added for NameInputPage
+import 'app/ui/pages/main_screen.dart';
+import 'app/ui/pages/security_check_page.dart';
+import 'app/ui/pages/home_page.dart';
+import 'app/ui/pages/all_fd_plans_page.dart'; // Added for AllFDPlansPage
+import 'app/ui/pages/trending_plans_page.dart'; // Added for TrendingPlansPage
+import 'app/ui/pages/goal_based_plans_page.dart'; // Added for GoalBasedPlansPage
+import 'app/ui/pages/comparison_page.dart';
+import 'app/ui/pages/fd_comparison_screen.dart'; // Added for FDComparisonScreen
+import 'app/ui/pages/fd_calculator_screen.dart'; // Added for FDCalculatorScreen
+import 'app/ui/pages/portfolio_page.dart';
+import 'app/ui/pages/payments_page.dart';
+import 'app/ui/pages/profile_page.dart';
+import 'app/ui/pages/edit_profile_page.dart'; // Added for EditProfilePage
+import 'app/ui/pages/referral_program_page.dart'; // Added for ReferralProgramPage
+import 'app/ui/pages/app_settings_page.dart'; // Added for AppSettingsPage
+import 'app/ui/pages/terms_conditions_page.dart'; // Added for TermsConditionsPage
+import 'app/ui/pages/user_agreements_page.dart'; // Added for UserAgreementsPage
+import 'app/ui/pages/help_customer_service_page.dart'; // Added for HelpCustomerServicePage
+import 'app/utils/colors.dart';
+import 'firebase_options.dart';
+import 'app/binding/main_screen_binding.dart';
+import 'app/binding/portfolio_binding.dart';
+import 'app/binding/payments_binding.dart';
+import 'app/binding/profile_binding.dart';
+
+// Utility function to format the current time
+String getFormattedTime() {
+  final now = DateTime.now();
+  final formatter = DateFormat('hh:mm a \'IST\', MMMM dd, yyyy');
+  return formatter.format(now);
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  if (kDebugMode) {
+    print('Firebase initialized at ${getFormattedTime()}');
+    print('Firebase Auth session persistence is handled automatically on Android');
+  }
+
+  // Initialize all controllers
+  Get.put(AuthController());
+  Get.put(HomeController());
+  Get.put(FDPlansController()); // Added for FDPlansController
+  Get.put(PortfolioController()); // Added for PortfolioController
+  Get.put(PaymentsController()); // Added for PaymentsController
+  Get.put(ProfileController()); // Added for ProfileController
+
+  runApp(const DhankuberApp());
+}
+
+class DhankuberApp extends StatelessWidget {
+  const DhankuberApp({super.key});
+
+  Future<String> _getInitialRoute() async {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+
+    if (kDebugMode) {
+      print('Checking initial route at ${getFormattedTime()}...');
+      print('Firebase Auth currentUser: ${auth.currentUser?.uid}, Phone: ${auth.currentUser?.phoneNumber}');
+    }
+
+    // Check if user is logged in
+    if (auth.currentUser == null) {
+      if (kDebugMode) {
+        print('No signed-in user, redirecting to LoginPage');
+      }
+      return '/login';
+    }
+
+    // Check security settings
+    String? biometricEnabled = await secureStorage.read(key: 'biometric_enabled');
+    String? mpinEnabled = await secureStorage.read(key: 'mpin_enabled');
+    bool isSecurityEnabled = biometricEnabled == 'true' || mpinEnabled == 'true';
+    if (kDebugMode) {
+      print('Security settings - Biometric: $biometricEnabled, MPIN: $mpinEnabled, Enabled: $isSecurityEnabled');
+    }
+
+    // Return route based on security settings
+    if (isSecurityEnabled) {
+      if (kDebugMode) {
+        print('Security enabled, redirecting to SecurityCheckPage');
+      }
+      return '/security';
+    } else {
+      if (kDebugMode) {
+        print('No security enabled, redirecting to MainScreen');
+      }
+      return '/main';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (kDebugMode) {
+      print('Building DhankuberApp at ${getFormattedTime()}');
+    }
+    return GetMaterialApp(
+      title: 'Dhankuber',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryColor: AppColors.primaryBrand,
+        scaffoldBackgroundColor: AppColors.background,
+        textTheme: const TextTheme(
+          headlineLarge: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primaryText,
+          ),
+          bodyLarge: TextStyle(
+            fontFamily: 'OpenSans',
+            fontSize: 16,
+            color: AppColors.primaryText,
+          ),
+          bodyMedium: TextStyle(
+            fontFamily: 'OpenSans',
+            fontSize: 14,
+            color: AppColors.secondaryText,
+          ),
+        ),
+        buttonTheme: const ButtonThemeData(
+          buttonColor: AppColors.primaryBrand,
+          textTheme: ButtonTextTheme.primary,
+        ),
+      ),
+      initialRoute: '/initial',
+      getPages: [
+        GetPage(
+          name: '/initial',
+          page: () => FutureBuilder<String>(
+            future: _getInitialRoute(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                if (kDebugMode) {
+                  print('Initial route loading...');
+                }
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (kDebugMode) {
+                print('Initial route loaded: ${snapshot.data}');
+              }
+              // Navigate to the determined route
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Get.offAllNamed(snapshot.data ?? '/login');
+              });
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            },
+          ),
+        ),
+        GetPage(
+          name: '/login',
+          page: () => const LoginPage(),
+        ),
+        GetPage(
+          name: '/otp',
+          page: () => const OTPPage(),
+        ),
+        GetPage(
+          name: '/name',
+          page: () => const NameInputPage(),
+        ),
+        GetPage(
+          name: '/security',
+          page: () => const SecurityCheckPage(),
+        ),
+        GetPage(
+          name: '/main',
+          page: () => const MainScreen(),
+          binding: MainScreenBinding(),
+        ),
+        GetPage(
+          name: '/home',
+          page: () => const HomePage(),
+        ),
+        GetPage(
+          name: '/all_fd_plans',
+          page: () => const AllFDPlansPage(),
+        ),
+        GetPage(
+          name: '/trending_plans',
+          page: () => const TrendingPlansPage(),
+        ),
+        GetPage(
+          name: '/goal_based_plans',
+          page: () => const GoalBasedPlansPage(),
+        ),
+        GetPage(
+          name: '/comparison',
+          page: () => const ComparisonPage(),
+        ),
+        GetPage(
+          name: '/fd_comparison',
+          page: () => const FDComparisonScreen(selectedFDPlans: []),
+        ),
+        GetPage(
+          name: '/fd_calculator',
+          page: () => const FDCalculatorScreen(),
+        ),
+        GetPage(
+          name: '/portfolio',
+          page: () => const PortfolioPage(),
+          binding: PortfolioBinding(),
+        ),
+        GetPage(
+          name: '/payments',
+          page: () => const PaymentsPage(),
+          binding: PaymentsBinding(),
+        ),
+        GetPage(
+          name: '/profile',
+          page: () => const ProfilePage(),
+          binding: ProfileBinding(),
+        ),
+        GetPage(
+          name: '/edit_profile',
+          page: () => const EditProfilePage(),
+        ),
+        GetPage(
+          name: '/referral_program',
+          page: () => const ReferralProgramPage(),
+        ),
+        GetPage(
+          name: '/app_settings',
+          page: () => const AppSettingsPage(),
+        ),
+        GetPage(
+          name: '/terms_conditions',
+          page: () => const TermsConditionsPage(),
+        ),
+        GetPage(
+          name: '/user_agreements',
+          page: () => const UserAgreementsPage(),
+        ),
+        GetPage(
+          name: '/help_customer_service',
+          page: () => const HelpCustomerServicePage(),
+        ),
+      ],
+    );
+  }
+}
