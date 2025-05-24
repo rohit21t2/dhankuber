@@ -3,8 +3,17 @@ import '../../utils/colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final Color backgroundColor;
+  final double elevation;
+  final Color shadowColor;
 
-  const CustomAppBar({super.key, required this.title});
+  const CustomAppBar({
+    super.key,
+    required this.title,
+    this.backgroundColor = AppColors.accentLightGreen, // Default to current background color
+    this.elevation = 2, // Default to current elevation
+    this.shadowColor = const Color(0x80E0E0E0), // Approximate AppColors.neutralLightGray.withOpacity(0.5)
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +24,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           color: AppColors.primaryText,
         ),
       ),
-      backgroundColor: AppColors.accentLightGreen,
-      elevation: 2,
-      shadowColor: AppColors.neutralLightGray.withOpacity(0.5),
+      backgroundColor: backgroundColor,
+      elevation: elevation,
+      shadowColor: shadowColor,
       centerTitle: true,
     );
   }

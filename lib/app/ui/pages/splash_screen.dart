@@ -26,17 +26,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       _tickControllers.add(controller);
     }
 
-    // Start tick animations sequentially with a delay
+    // Start tick animations sequentially with a delay of 400ms
     for (int i = 0; i < _tickControllers.length; i++) {
-      Future.delayed(Duration(milliseconds: i * 300), () {
+      Future.delayed(Duration(milliseconds: i * 400), () {
         if (mounted) {
           _tickControllers[i].forward();
         }
       });
     }
 
-    // Navigate after all animations complete (9 features × 300ms delay each = 2700ms total)
-    Future.delayed(const Duration(milliseconds: 2700), () async {
+    // Navigate after all animations complete (9 features × 400ms delay each = 3600ms total)
+    Future.delayed(const Duration(milliseconds: 3600), () async {
       final route = await widget.initialRouteFuture;
       Get.offAllNamed(route);
     });
@@ -54,7 +54,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(title: ''), // Empty title to keep AppBar blank
+      appBar: const CustomAppBar(
+        title: '', // Keep empty as requested
+        backgroundColor: Colors.transparent, // Make AppBar transparent
+        elevation: 0, // Remove shadow
+      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
         child: Column(
