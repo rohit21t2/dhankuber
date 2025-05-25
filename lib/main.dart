@@ -14,7 +14,7 @@ import 'app/controllers/fd_plans_controller.dart';
 import 'app/controllers/portfolio_controller.dart';
 import 'app/controllers/payments_controller.dart';
 import 'app/controllers/profile_controller.dart';
-import 'app/controllers/goal_based_plans_controller.dart'; // Added import
+import 'app/controllers/goal_based_plans_controller.dart';
 import 'app/ui/pages/login_page.dart';
 import 'app/ui/pages/otp_page.dart';
 import 'app/ui/pages/name_input_page.dart';
@@ -46,12 +46,13 @@ import 'app/binding/main_screen_binding.dart';
 import 'app/binding/portfolio_binding.dart';
 import 'app/binding/payments_binding.dart';
 import 'app/binding/profile_binding.dart';
+import 'app/ui/pages/fd_details_page.dart'; // Added import
 
 // Utility function to format the current time
 String getFormattedTime() {
   final now = DateTime.now();
   final formatter = DateFormat('hh:mm a z, MMMM dd, yyyy');
-  return formatter.format(now); // e.g., 07:22 PM IST, May 25, 2025
+  return formatter.format(now); // e.g., 10:24 PM IST, May 25, 2025
 }
 
 void main() async {
@@ -78,7 +79,7 @@ void main() async {
   Get.lazyPut(() => PortfolioController());
   Get.lazyPut(() => PaymentsController());
   Get.lazyPut(() => ProfileController());
-  Get.lazyPut(() => GoalBasedPlansController()); // Added lazy initialization
+  Get.lazyPut(() => GoalBasedPlansController());
 
   runApp(const DhankuberApp());
 }
@@ -220,7 +221,10 @@ class DhankuberApp extends StatelessWidget {
           name: '/fd_booking',
           page: () => const FDBookingPage(),
         ),
-        // Removed FDDetailsPage route since it requires a dynamic 'goal' parameter
+        GetPage(
+          name: '/fd_details',
+          page: () => FDDetailsPage(goal: Get.arguments as Map<String, dynamic>),
+        ),
         GetPage(
           name: '/comparison',
           page: () => const ComparisonPage(),

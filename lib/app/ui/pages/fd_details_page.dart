@@ -58,95 +58,133 @@ class FDDetailsPage extends StatelessWidget {
       appBar: CustomAppBar(title: '${goal['goalName']} Details'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Icon(
-                icon,
-                size: 50,
-                color: AppColors.primaryBrand,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              goal['goalName'],
-              style: const TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryText,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Issuer: Suryoday Small Finance Bank',
-              style: const TextStyle(
-                fontFamily: 'OpenSans',
-                fontSize: 16,
-                color: AppColors.primaryText,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Expected Return: ${goal['expectedReturn']}',
-              style: const TextStyle(
-                fontFamily: 'OpenSans',
-                fontSize: 16,
-                color: AppColors.primaryText,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Tenure: ${goal['tenure']}',
-              style: const TextStyle(
-                fontFamily: 'OpenSans',
-                fontSize: 16,
-                color: AppColors.primaryText,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Duration: ${goal['duration']}',
-              style: const TextStyle(
-                fontFamily: 'OpenSans',
-                fontSize: 16,
-                color: AppColors.primaryText,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              goal['goalName'] == 'Tax-Saving FD' ? 'Tax Benefit: Yes' : 'Tax Benefit: No',
-              style: const TextStyle(
-                fontFamily: 'OpenSans',
-                fontSize: 16,
-                color: AppColors.primaryText,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Get.to(() => const FDBookingPage());
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBrand,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-                child: const Text(
-                  'Proceed to Book FD',
-                  style: TextStyle(
-                    fontFamily: 'OpenSans',
-                    fontSize: 16,
-                    color: Colors.black,
-                  ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Icon(
+                  icon,
+                  size: 50,
+                  color: AppColors.primaryBrand,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+
+              // Large Card for FD Details (same UI as All FDs)
+              Container(
+                width: double.infinity, // Full width for the card
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBrand,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      offset: const Offset(0, 4),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                            image: const DecorationImage(
+                              image: AssetImage('assets/images/logo.png'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            goal['goalName'],
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Issuer: Suryoday Small Finance Bank',
+                      style: const TextStyle(
+                        fontFamily: 'OpenSans',
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Expected Return: ${goal['expectedReturn']}',
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Tenure: ${goal['tenure']}',
+                      style: const TextStyle(
+                        fontFamily: 'OpenSans',
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      goal['taxSaving'] == true ? 'Tax Benefit: Yes' : 'Tax Benefit: No',
+                      style: const TextStyle(
+                        fontFamily: 'OpenSans',
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Get.to(() => const FDBookingPage());
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBrand,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  child: const Text(
+                    'Proceed to Book FD',
+                    style: TextStyle(
+                      fontFamily: 'OpenSans',
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
