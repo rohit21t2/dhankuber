@@ -304,7 +304,11 @@ class _SecurityCheckPageState extends State<SecurityCheckPage> {
       onWillPop: _onWillPop,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: const CustomAppBar(title: 'Security'), // Added CustomAppBar
+        appBar: const CustomAppBar(
+          title: '', // Remove the title text
+          backgroundColor: Colors.transparent, // Make AppBar transparent
+          elevation: 0, // Remove elevation/shadow
+        ),
         body: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
