@@ -455,7 +455,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 180,
+              height: 200, // Increased from 180 to 200
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: homeController.trendingFDs.length,
@@ -492,7 +492,7 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 180,
+              height: 200, // Increased from 180 to 200
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: homeController.allFDs.length,
@@ -551,7 +551,7 @@ class HomePage extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         ),
                         child: Text(
-                          'View All Plans'.tr,
+                          'View All Goals'.tr,
                           style: const TextStyle(
                             fontFamily: 'OpenSans',
                             fontSize: 12,
@@ -617,66 +617,72 @@ class HomePage extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 200,
+        width: 220, // Increased from 200 to 220
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.all(12),
         decoration: backgroundDecoration,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                image: const DecorationImage(
-                  image: AssetImage('assets/images/logo.png'),
-                  fit: BoxFit.cover,
+            Row(
+              children: [
+                Container(
+                  width: 48, // Increased from 40 to 48
+                  height: 48, // Increased from 40 to 48
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                    image: const DecorationImage(
+                      image: AssetImage('assets/images/logo.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    fd['bank'],
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 18, // Increased from 16 to 18
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 2),
-            Text(
-              fd['bank'],
-              style: const TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 14), // Increased from 12 to 14
             Text(
               'Tenure: ${fd['plan']}',
               style: const TextStyle(
                 fontFamily: 'OpenSans',
-                fontSize: 10,
+                fontSize: 16, // Increased from 14 to 16
                 color: Colors.white,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 10), // Increased from 8 to 10
             Text(
-              'Rate: ${fd['interestRate']}',
+              'Interest Rate: ${fd['interestRate']}',
               style: const TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 10,
+                fontSize: 16, // Increased from 14 to 16
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 10), // Increased from 8 to 10
             Text(
               'Issuer: ${fd['issuerType']}',
               style: const TextStyle(
                 fontFamily: 'OpenSans',
-                fontSize: 10,
+                fontSize: 16, // Increased from 14 to 16
                 color: Colors.white,
               ),
               maxLines: 1,

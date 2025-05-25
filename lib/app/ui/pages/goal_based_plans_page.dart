@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/home_controller.dart';
+import '../../controllers/goal_based_plans_controller.dart'; // Updated import
 import '../components/custom_appbar.dart';
 import '../../utils/colors.dart';
 import 'fd_details_page.dart';
@@ -20,10 +20,10 @@ class _GoalBasedPlansPageState extends State<GoalBasedPlansPage> {
 
   @override
   Widget build(BuildContext context) {
-    final HomeController homeController = Get.find<HomeController>();
+    final GoalBasedPlansController goalBasedPlansController = Get.find<GoalBasedPlansController>(); // Updated controller
 
     // Filter logic
-    List<Map<String, dynamic>> filteredFDs = homeController.goalBasedFDs;
+    List<Map<String, dynamic>> filteredFDs = goalBasedPlansController.goalBasedFDs;
     if (selectedGoalType != null) {
       filteredFDs = filteredFDs
           .where((category) => category['category'].contains(selectedGoalType))

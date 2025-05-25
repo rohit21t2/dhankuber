@@ -14,6 +14,7 @@ import 'app/controllers/fd_plans_controller.dart';
 import 'app/controllers/portfolio_controller.dart';
 import 'app/controllers/payments_controller.dart';
 import 'app/controllers/profile_controller.dart';
+import 'app/controllers/goal_based_plans_controller.dart'; // Added import
 import 'app/ui/pages/login_page.dart';
 import 'app/ui/pages/otp_page.dart';
 import 'app/ui/pages/name_input_page.dart';
@@ -77,6 +78,7 @@ void main() async {
   Get.lazyPut(() => PortfolioController());
   Get.lazyPut(() => PaymentsController());
   Get.lazyPut(() => ProfileController());
+  Get.lazyPut(() => GoalBasedPlansController()); // Added lazy initialization
 
   runApp(const DhankuberApp());
 }
