@@ -25,7 +25,6 @@ import 'app/ui/pages/trending_plans_page.dart';
 import 'app/ui/pages/goal_based_plans_page.dart';
 import 'app/ui/pages/fd_trial_section_page.dart';
 import 'app/ui/pages/fd_booking_page.dart';
-import 'app/ui/pages/fd_details_page.dart';
 import 'app/ui/pages/comparison_page.dart';
 import 'app/ui/pages/fd_comparison_screen.dart';
 import 'app/ui/pages/fd_calculator_screen.dart';
@@ -51,7 +50,7 @@ import 'app/binding/profile_binding.dart';
 String getFormattedTime() {
   final now = DateTime.now();
   final formatter = DateFormat('hh:mm a z, MMMM dd, yyyy');
-  return formatter.format(now); // e.g., 06:35 PM IST, May 25, 2025
+  return formatter.format(now); // e.g., 07:22 PM IST, May 25, 2025
 }
 
 void main() async {
@@ -219,10 +218,7 @@ class DhankuberApp extends StatelessWidget {
           name: '/fd_booking',
           page: () => const FDBookingPage(),
         ),
-        GetPage(
-          name: '/fd_details',
-          page: () => const FDDetailsPage(),
-        ),
+        // Removed FDDetailsPage route since it requires a dynamic 'goal' parameter
         GetPage(
           name: '/comparison',
           page: () => const ComparisonPage(),

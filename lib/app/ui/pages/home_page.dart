@@ -315,7 +315,7 @@ class HomePage extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final fd = homeController.fixerraFDs[index];
                   return Padding(
-                    padding: const EdgeInsets.only(right: 12), // Consistent spacing like Instagram Stories
+                    padding: const EdgeInsets.only(right: 12),
                     child: GestureDetector(
                       onTap: () {
                         showDialog(
@@ -408,9 +408,9 @@ class HomePage extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           SizedBox(
-                            width: 70, // Fixed width to maintain consistent spacing
+                            width: 70,
                             child: Text(
-                              fd['title'], // "Suryoday Small Finance Bank"
+                              fd['title'],
                               style: const TextStyle(
                                 fontFamily: 'OpenSans',
                                 fontSize: 12,
@@ -418,7 +418,7 @@ class HomePage extends StatelessWidget {
                               ),
                               textAlign: TextAlign.center,
                               maxLines: 1,
-                              overflow: TextOverflow.ellipsis, // Truncate with ellipsis if too long
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -504,39 +504,64 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Goal-Based FDs (Third Position)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'goal_based_fds'.tr,
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    fontFamily: 'Poppins',
-                    color: AppColors.primaryText,
+            // Goal-Based FDs (Third Position) - Single Card
+            GestureDetector(
+              onTap: () => Get.to(() => const GoalBasedPlansPage()),
+              child: Container(
+                width: double.infinity,
+                height: 120,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Colors.orange, Color(0xFF2E7D32)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ),
-                TextButton(
-                  onPressed: () => Get.to(() => const GoalBasedPlansPage()),
-                  child: Text(
-                    'view_all'.tr,
-                    style: const TextStyle(
-                      fontFamily: 'OpenSans',
-                      color: AppColors.primaryBrand,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      offset: const Offset(0, 4),
+                      blurRadius: 8,
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 180,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: homeController.goalBasedFDs.length,
-                itemBuilder: (context, index) {
-                  final fd = homeController.goalBasedFDs[index];
-                  return _buildFDCard(fd, () => Get.to(() => const GoalBasedPlansPage()), 'goalBased');
-                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '🎯 Plan Your Goals with Smart FDs',
+                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                        fontFamily: 'Poppins',
+                        color: Colors.white,
+                        fontSize: 20,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () => Get.to(() => const GoalBasedPlansPage()),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBrand,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        ),
+                        child: Text(
+                          'View All Plans'.tr,
+                          style: const TextStyle(
+                            fontFamily: 'OpenSans',
+                            fontSize: 12,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -546,11 +571,10 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildFDCard(Map<String, dynamic> fd, VoidCallback onTap, String section) {
-    // Determine the background style based on the section
     Decoration backgroundDecoration;
     if (section == 'trending') {
       backgroundDecoration = BoxDecoration(
-        color: const Color(0xFF2E7D32), // Swapped to solid dark green (previously Goal-Based FDs color)
+        color: const Color(0xFF2E7D32),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -563,7 +587,7 @@ class HomePage extends StatelessWidget {
     } else if (section == 'goalBased') {
       backgroundDecoration = BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Colors.orange, Color(0xFF2E7D32)], // Swapped to gradient (previously Trending FDs color)
+          colors: [Colors.orange, Color(0xFF2E7D32)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -577,7 +601,6 @@ class HomePage extends StatelessWidget {
         ],
       );
     } else {
-      // 'all' section
       backgroundDecoration = BoxDecoration(
         color: AppColors.primaryBrand,
         borderRadius: BorderRadius.circular(12),
@@ -602,8 +625,8 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
@@ -613,47 +636,47 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               fd['bank'],
               style: const TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               'Tenure: ${fd['plan']}',
               style: const TextStyle(
                 fontFamily: 'OpenSans',
-                fontSize: 12,
+                fontSize: 10,
                 color: Colors.white,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               'Rate: ${fd['interestRate']}',
               style: const TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 12,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               'Issuer: ${fd['issuerType']}',
               style: const TextStyle(
                 fontFamily: 'OpenSans',
-                fontSize: 12,
+                fontSize: 10,
                 color: Colors.white,
               ),
               maxLines: 1,
