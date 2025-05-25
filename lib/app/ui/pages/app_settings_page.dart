@@ -44,6 +44,15 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
 
   @override
   void dispose() {
+    // If MPIN is not set, disable MPIN toggle before leaving the page
+    if (_isMPINEnabled && !_hasMPIN) {
+      if (kDebugMode) {
+        print('AppSettingsPage: MPIN not set, reverting MPIN toggle to disabled at ${_getFormattedTime()}');
+      }
+      _isMPINEnabled = false;
+      _saveSettings(); // Save the reverted state
+    }
+
     for (var controller in _mpinControllers) {
       controller.dispose();
     }
@@ -158,6 +167,14 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
 
   Future<void> _saveSettings() async {
     try {
+      // Only save _isMPINEnabled as true if an MPIN has been set
+      if (_isMPINEnabled && !_hasMPIN) {
+        if (kDebugMode) {
+          print('AppSettingsPage: MPIN not set, reverting MPIN toggle to disabled during save at ${_getFormattedTime()}');
+        }
+        _isMPINEnabled = false;
+      }
+
       // Save biometric and MPIN settings
       await _secureStorage.write(key: 'biometric_enabled', value: _isBiometricEnabled.toString());
       await _secureStorage.write(key: 'mpin_enabled', value: _isMPINEnabled.toString());
@@ -176,7 +193,7 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
       }
 
       if (kDebugMode) {
-        print('AppSettingsPage: Settings saved at ${_getFormattedTime()}');
+        print('AppSettingsPage: Settings saved at ${_getFormattedTime()} - MPIN Enabled: $_isMPINEnabled, Biometric Enabled: $_isBiometricEnabled');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -203,9 +220,11 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
       if (!mounted) return;
       setState(() {
         _hasMPIN = true;
+        _isMPINEnabled = true; // Enable MPIN toggle after successful MPIN creation
       });
+      await _secureStorage.write(key: 'mpin_enabled', value: 'true'); // Save MPIN enabled state
       if (kDebugMode) {
-        print('AppSettingsPage: MPIN saved at ${_getFormattedTime()}');
+        print('AppSettingsPage: MPIN saved and MPIN toggle enabled at ${_getFormattedTime()}');
       }
       Get.snackbar('Success', 'MPIN Successfully Created',
           backgroundColor: AppColors.successGreen, colorText: AppColors.background);
@@ -215,6 +234,10 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
       }
       Get.snackbar('Error', 'Failed to save MPIN: $e',
           backgroundColor: AppColors.errorRed, colorText: AppColors.background);
+      setState(() {
+        _isMPINEnabled = false; // Revert MPIN toggle on failure
+      });
+      await _secureStorage.write(key: 'mpin_enabled', value: 'false');
     }
   }
 
@@ -307,9 +330,13 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
                               for (var controller in _mpinControllers) {
                                 controller.clear();
                               }
+                              _hasMPIN = false; // Reset MPIN state when toggled off
                             }
                           });
-                          await _saveSettings();
+                          if (!value) {
+                            await _saveSettings(); // Save immediately when toggling off
+                          }
+                          // Do not save settings when toggling on; wait until MPIN is set
                         },
                         activeColor: AppColors.primaryBrand,
                       ),
