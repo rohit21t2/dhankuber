@@ -1,39 +1,46 @@
+import 'dart:io' show Platform; // For platform checks
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart'; // Added for kDebugMode
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Fixed import
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart'; // Import intl for date formatting
+import 'package:webview_flutter/webview_flutter.dart'; // Import for WebView platform setup
+import 'package:webview_flutter_android/webview_flutter_android.dart'; // Android-specific WebView
 import 'app/controllers/auth_controller.dart';
 import 'app/controllers/home_controller.dart';
-import 'app/controllers/fd_plans_controller.dart'; // Added for FDPlansController
-import 'app/controllers/portfolio_controller.dart'; // Added for PortfolioController
-import 'app/controllers/payments_controller.dart'; // Added for PaymentsController
-import 'app/controllers/profile_controller.dart'; // Added for ProfileController
+import 'app/controllers/fd_plans_controller.dart';
+import 'app/controllers/portfolio_controller.dart';
+import 'app/controllers/payments_controller.dart';
+import 'app/controllers/profile_controller.dart';
 import 'app/ui/pages/login_page.dart';
-import 'app/ui/pages/otp_page.dart'; // Added for OTPPage
-import 'app/ui/pages/name_input_page.dart'; // Added for NameInputPage
+import 'app/ui/pages/otp_page.dart';
+import 'app/ui/pages/name_input_page.dart';
 import 'app/ui/pages/main_screen.dart';
 import 'app/ui/pages/security_check_page.dart';
 import 'app/ui/pages/home_page.dart';
-import 'app/ui/pages/all_fd_plans_page.dart'; // Added for AllFDPlansPage
-import 'app/ui/pages/trending_plans_page.dart'; // Added for TrendingPlansPage
-import 'app/ui/pages/goal_based_plans_page.dart'; // Added for GoalBasedPlansPage
+import 'app/ui/pages/all_fd_plans_page.dart';
+import 'app/ui/pages/trending_plans_page.dart';
+import 'app/ui/pages/goal_based_plans_page.dart';
+import 'app/ui/pages/fd_trial_section_page.dart';
+import 'app/ui/pages/fd_booking_page.dart';
+import 'app/ui/pages/fd_details_page.dart';
 import 'app/ui/pages/comparison_page.dart';
-import 'app/ui/pages/fd_comparison_screen.dart'; // Added for FDComparisonScreen
-import 'app/ui/pages/fd_calculator_screen.dart'; // Added for FDCalculatorScreen
+import 'app/ui/pages/fd_comparison_screen.dart';
+import 'app/ui/pages/fd_calculator_screen.dart';
 import 'app/ui/pages/portfolio_page.dart';
 import 'app/ui/pages/payments_page.dart';
 import 'app/ui/pages/profile_page.dart';
-import 'app/ui/pages/edit_profile_page.dart'; // Added for EditProfilePage
-import 'app/ui/pages/referral_program_page.dart'; // Added for ReferralProgramPage
-import 'app/ui/pages/app_settings_page.dart'; // Added for AppSettingsPage
-import 'app/ui/pages/terms_conditions_page.dart'; // Added for TermsConditionsPage
-import 'app/ui/pages/user_agreements_page.dart'; // Added for UserAgreementsPage
-import 'app/ui/pages/help_customer_service_page.dart'; // Added for HelpCustomerServicePage
-import 'app/ui/pages/splash_screen.dart'; // Added for SplashScreen
+import 'app/ui/pages/edit_profile_page.dart';
+import 'app/ui/pages/referral_program_page.dart';
+import 'app/ui/pages/app_settings_page.dart';
+import 'app/ui/pages/terms_conditions_page.dart';
+import 'app/ui/pages/user_agreements_page.dart';
+import 'app/ui/pages/help_customer_service_page.dart';
+import 'app/ui/pages/splash_screen.dart';
 import 'app/utils/colors.dart';
+import 'app/utils/translations.dart'; // Ensure this import is correct
 import 'firebase_options.dart';
 import 'app/binding/main_screen_binding.dart';
 import 'app/binding/portfolio_binding.dart';
@@ -43,8 +50,8 @@ import 'app/binding/profile_binding.dart';
 // Utility function to format the current time
 String getFormattedTime() {
   final now = DateTime.now();
-  final formatter = DateFormat('hh:mm a \'IST\', MMMM dd, yyyy');
-  return formatter.format(now);
+  final formatter = DateFormat('hh:mm a z, MMMM dd, yyyy');
+  return formatter.format(now); // e.g., 06:35 PM IST, May 25, 2025
 }
 
 void main() async {
@@ -55,6 +62,11 @@ void main() async {
   if (kDebugMode) {
     print('Firebase initialized at ${getFormattedTime()}');
     print('Firebase Auth session persistence is handled automatically on Android');
+  }
+
+  // Enable Android-specific WebView implementation
+  if (Platform.isAndroid) {
+    WebViewPlatform.instance = AndroidWebViewPlatform();
   }
 
   // Initialize only the AuthController in main.dart
@@ -75,6 +87,7 @@ class DhankuberApp extends StatelessWidget {
 
   Future<String> _getInitialRoute() async {
     final FirebaseAuth auth = FirebaseAuth.instance;
+
     final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
     if (kDebugMode) {
@@ -130,6 +143,12 @@ class DhankuberApp extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: AppColors.primaryText,
           ),
+          headlineMedium: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primaryText,
+          ),
           bodyLarge: TextStyle(
             fontFamily: 'OpenSans',
             fontSize: 16,
@@ -146,6 +165,9 @@ class DhankuberApp extends StatelessWidget {
           textTheme: ButtonTextTheme.primary,
         ),
       ),
+      translations: AppTranslations(),
+      locale: const Locale('en', 'US'),
+      fallbackLocale: const Locale('en', 'US'),
       initialRoute: '/splash',
       getPages: [
         GetPage(
@@ -188,6 +210,18 @@ class DhankuberApp extends StatelessWidget {
         GetPage(
           name: '/goal_based_plans',
           page: () => const GoalBasedPlansPage(),
+        ),
+        GetPage(
+          name: '/fd_trial_section',
+          page: () => const FDTrialSectionPage(),
+        ),
+        GetPage(
+          name: '/fd_booking',
+          page: () => const FDBookingPage(),
+        ),
+        GetPage(
+          name: '/fd_details',
+          page: () => const FDDetailsPage(),
         ),
         GetPage(
           name: '/comparison',

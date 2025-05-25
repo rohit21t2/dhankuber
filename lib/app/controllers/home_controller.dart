@@ -1,22 +1,44 @@
 import 'package:flutter/foundation.dart'; // Added for kDebugMode
 import 'package:get/get.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart'; // Added for date formatting
 
 class HomeController extends GetxController {
-  var isLoading = false.obs;
-  var recommendedFDs = [].obs;
-  var trendingFDs = [].obs;
-  var goalBasedFDs = [].obs;
-  var notifications = [].obs; // Added for notifications
+  // Fixerra FDs (Stories-like Panel) - Increased to 6
+  final RxList<Map<String, dynamic>> fixerraFDs = [
+    {'title': 'Suryoday Small Finance Bank', 'url': 'https://dhan-kuber.com/fd1'},
+    {'title': 'Suryoday Small Finance Bank', 'url': 'https://dhan-kuber.com/fd2'},
+    {'title': 'Suryoday Small Finance Bank', 'url': 'https://dhan-kuber.com/fd3'},
+    {'title': 'Suryoday Small Finance Bank', 'url': 'https://dhan-kuber.com/fd4'},
+    {'title': 'Suryoday Small Finance Bank', 'url': 'https://dhan-kuber.com/fd5'},
+    {'title': 'Suryoday Small Finance Bank', 'url': 'https://dhan-kuber.com/fd6'},
+  ].obs;
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // Trending FDs - Show 3 items
+  final RxList<Map<String, dynamic>> trendingFDs = [
+    {'bank': 'Suryoday Small Finance Bank', 'plan': '12 Months', 'interestRate': '9.10% p.a.', 'issuerType': 'Bank'},
+    {'bank': 'Suryoday Small Finance Bank', 'plan': '12 Months', 'interestRate': '9.10% p.a.', 'issuerType': 'Bank'},
+    {'bank': 'Suryoday Small Finance Bank', 'plan': '12 Months', 'interestRate': '9.10% p.a.', 'issuerType': 'Bank'},
+  ].obs;
+
+  // Goal-Based FDs - Show 3 items
+  final RxList<Map<String, dynamic>> goalBasedFDs = [
+    {'bank': 'Suryoday Small Finance Bank', 'plan': '12 Months', 'interestRate': '9.10% p.a.', 'issuerType': 'Bank'},
+    {'bank': 'Suryoday Small Finance Bank', 'plan': '12 Months', 'interestRate': '9.10% p.a.', 'issuerType': 'Bank'},
+    {'bank': 'Suryoday Small Finance Bank', 'plan': '12 Months', 'interestRate': '9.10% p.a.', 'issuerType': 'Bank'},
+  ].obs;
+
+  // All FDs - Show 3 items
+  final RxList<Map<String, dynamic>> allFDs = [
+    {'bank': 'Suryoday Small Finance Bank', 'plan': '12 Months', 'interestRate': '9.10% p.a.', 'issuerType': 'Bank'},
+    {'bank': 'Suryoday Small Finance Bank', 'plan': '12 Months', 'interestRate': '9.10% p.a.', 'issuerType': 'Bank'},
+    {'bank': 'Suryoday Small Finance Bank', 'plan': '12 Months', 'interestRate': '9.10% p.a.', 'issuerType': 'Bank'},
+  ].obs;
 
   // Utility function to format the current time
   String _getFormattedTime() {
     final now = DateTime.now();
-    final formatter = DateFormat('hh:mm a \'IST\', MMMM dd, yyyy');
-    return formatter.format(now);
+    final formatter = DateFormat('hh:mm a z, MMMM dd, yyyy');
+    return formatter.format(now); // e.g., 06:35 PM IST, May 25, 2025
   }
 
   @override
@@ -24,89 +46,6 @@ class HomeController extends GetxController {
     super.onInit();
     if (kDebugMode) {
       print('HomeController initialized at ${_getFormattedTime()}');
-    }
-    fetchData();
-  }
-
-  Future<void> fetchData() async {
-    isLoading.value = true;
-    if (kDebugMode) {
-      print('Fetching data at ${_getFormattedTime()}');
-    }
-    try {
-      // Fetch Recommended FDs
-      QuerySnapshot recommendedSnapshot = await _firestore
-          .collection('fixed_deposits')
-          .where('recommended', isEqualTo: true)
-          .limit(5)
-          .get();
-      recommendedFDs.value = recommendedSnapshot.docs.map((doc) => doc.data()).toList();
-      if (kDebugMode) {
-        print('Recommended FDs fetched: ${recommendedFDs.length} at ${_getFormattedTime()}');
-      }
-
-      // Fetch Trending FDs
-      QuerySnapshot trendingSnapshot = await _firestore
-          .collection('fixed_deposits')
-          .orderBy('popularity', descending: true)
-          .limit(5)
-          .get();
-      trendingFDs.value = trendingSnapshot.docs.map((doc) => doc.data()).toList();
-      if (kDebugMode) {
-        print('Trending FDs fetched: ${trendingFDs.length} at ${_getFormattedTime()}');
-      }
-
-      // Fetch Goal-Based FDs
-      QuerySnapshot goalBasedSnapshot = await _firestore
-          .collection('fixed_deposits')
-          .where('goalBased', isEqualTo: true)
-          .limit(5)
-          .get();
-      goalBasedFDs.value = goalBasedSnapshot.docs.map((doc) => doc.data()).toList();
-      if (kDebugMode) {
-        print('Goal-Based FDs fetched: ${goalBasedFDs.length} at ${_getFormattedTime()}');
-      }
-
-      // Fetch Notifications (mock data for now, replace with actual Firestore query)
-      // Assuming a 'notifications' collection with fields: title, message, timestamp
-      try {
-        QuerySnapshot notificationsSnapshot = await _firestore
-            .collection('notifications')
-            .orderBy('timestamp', descending: true)
-            .limit(10)
-            .get();
-        notifications.value = notificationsSnapshot.docs.map((doc) => doc.data()).toList();
-        if (kDebugMode) {
-          print('Notifications fetched: ${notifications.length} at ${_getFormattedTime()}');
-        }
-      } catch (e) {
-        if (kDebugMode) {
-          print('Error fetching notifications from Firestore: $e at ${_getFormattedTime()}');
-        }
-        // Mock data as a fallback if Firestore query fails or isn't set up
-        notifications.value = [
-          {
-            'title': 'Welcome to Dhankuber!',
-            'message': 'Start exploring fixed deposits to grow your wealth.',
-            'timestamp': Timestamp.now(),
-          },
-          {
-            'title': 'New FD Available',
-            'message': 'Check out the latest fixed deposit with 8% interest!',
-            'timestamp': Timestamp.now(),
-          },
-        ];
-        if (kDebugMode) {
-          print('Using mock notifications data: ${notifications.length} items at ${_getFormattedTime()}');
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching data: $e at ${_getFormattedTime()}');
-      }
-      Get.snackbar('Error', 'Failed to load data: $e');
-    } finally {
-      isLoading.value = false;
     }
   }
 }

@@ -27,6 +27,7 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
   List<String> _mpinDigits = List.filled(4, '');
   final List<TextEditingController> _mpinControllers = List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _mpinFocusNodes = List.generate(4, (_) => FocusNode());
+  String _selectedLanguage = 'English'; // Default language
 
   // Utility function to format the current time
   String _getFormattedTime() {
@@ -40,6 +41,7 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
     super.initState();
     _checkBiometricSupport();
     _loadSettings();
+    _loadLanguage();
   }
 
   @override
@@ -100,6 +102,37 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
       }
       Get.snackbar('Error', 'Failed to load settings: $e',
           backgroundColor: AppColors.errorRed, colorText: AppColors.background);
+    }
+  }
+
+  Future<void> _loadLanguage() async {
+    try {
+      String? savedLanguage = await _secureStorage.read(key: 'app_language');
+      if (savedLanguage != null && savedLanguage.isNotEmpty) {
+        setState(() {
+          _selectedLanguage = savedLanguage;
+        });
+      }
+      if (kDebugMode) {
+        print('AppSettingsPage: Language loaded at ${_getFormattedTime()}: $_selectedLanguage');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppSettingsPage: Error loading language at ${_getFormattedTime()}: $e');
+      }
+    }
+  }
+
+  Future<void> _saveLanguage(String language) async {
+    try {
+      await _secureStorage.write(key: 'app_language', value: language);
+      if (kDebugMode) {
+        print('AppSettingsPage: Language saved at ${_getFormattedTime()}: $language');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('AppSettingsPage: Error saving language at ${_getFormattedTime()}: $e');
+      }
     }
   }
 
@@ -285,6 +318,7 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Security Settings Section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -386,11 +420,24 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
                       ],
                     ),
                   if (_isMPINEnabled && _hasMPIN)
-                    CustomButton(
-                      text: 'Change MPIN',
+                    ElevatedButton(
                       onPressed: () {
                         Get.to(() => const ForgotMPINPage());
                       },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryBrand,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12), // Consistent button shape
+                        ),
+                      ),
+                      child: Text(
+                        'Change MPIN',
+                        style: const TextStyle(
+                          fontFamily: 'OpenSans',
+                          fontSize: 14,
+                          color: Colors.black, // Consistent text color
+                        ),
+                      ),
                     ),
                   const SizedBox(height: 16),
                   Row(
@@ -433,6 +480,121 @@ class _AppSettingsPageState extends State<AppSettingsPage> {
                       fontFamily: 'OpenSans',
                       color: AppColors.secondaryText,
                     ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Language Settings Section
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.neutralLightGray,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    offset: const Offset(0, 2),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Language Settings',
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontFamily: 'Poppins',
+                      fontSize: 20,
+                      color: AppColors.primaryText,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: _selectedLanguage,
+                    decoration: InputDecoration(
+                      labelText: 'Select Language',
+                      labelStyle: const TextStyle(
+                        fontFamily: 'OpenSans',
+                        color: AppColors.secondaryText,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primaryText),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primaryText),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.primaryBrand),
+                      ),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'English', child: Text('English')),
+                      DropdownMenuItem(value: 'Hindi', child: Text('Hindi')),
+                      DropdownMenuItem(value: 'Bengali', child: Text('Bengali')),
+                      DropdownMenuItem(value: 'Marathi', child: Text('Marathi')),
+                      DropdownMenuItem(value: 'Tamil', child: Text('Tamil')),
+                      DropdownMenuItem(value: 'Telugu', child: Text('Telugu')),
+                      DropdownMenuItem(value: 'Gujarati', child: Text('Gujarati')),
+                      DropdownMenuItem(value: 'Kannada', child: Text('Kannada')),
+                      DropdownMenuItem(value: 'Malayalam', child: Text('Malayalam')),
+                      DropdownMenuItem(value: 'Punjabi', child: Text('Punjabi')),
+                      DropdownMenuItem(value: 'Odia', child: Text('Odia')),
+                      DropdownMenuItem(value: 'Urdu', child: Text('Urdu')),
+                    ],
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          _selectedLanguage = newValue;
+                        });
+                        Locale locale;
+                        switch (newValue) {
+                          case 'Hindi':
+                            locale = const Locale('hi', 'IN');
+                            break;
+                          case 'Bengali':
+                            locale = const Locale('bn', 'IN');
+                            break;
+                          case 'Marathi':
+                            locale = const Locale('mr', 'IN');
+                            break;
+                          case 'Tamil':
+                            locale = const Locale('ta', 'IN');
+                            break;
+                          case 'Telugu':
+                            locale = const Locale('te', 'IN');
+                            break;
+                          case 'Gujarati':
+                            locale = const Locale('gu', 'IN');
+                            break;
+                          case 'Kannada':
+                            locale = const Locale('kn', 'IN');
+                            break;
+                          case 'Malayalam':
+                            locale = const Locale('ml', 'IN');
+                            break;
+                          case 'Punjabi':
+                            locale = const Locale('pa', 'IN');
+                            break;
+                          case 'Odia':
+                            locale = const Locale('or', 'IN');
+                            break;
+                          case 'Urdu':
+                            locale = const Locale('ur', 'IN');
+                            break;
+                          default:
+                            locale = const Locale('en', 'US'); // English
+                        }
+                        Get.updateLocale(locale);
+                        _saveLanguage(newValue);
+                        Get.snackbar('language_changed'.tr, '${'language_set_to'.tr} $newValue',
+                            backgroundColor: AppColors.successGreen, colorText: Colors.white);
+                      }
+                    },
                   ),
                 ],
               ),
