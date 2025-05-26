@@ -370,6 +370,7 @@ class _AllFDPlansPageState extends State<AllFDPlansPage> {
                   }).toList(),
                   onChanged: (String? newValue) {
                     fdPlansController.updateTempSortBy(newValue);
+                    fdPlansController.applyTempFiltersAndSort(); // Apply sorting immediately
                   },
                   underline: Container(),
                   icon: const Icon(
