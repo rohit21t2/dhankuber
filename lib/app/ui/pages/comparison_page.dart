@@ -297,41 +297,6 @@ class _ComparisonPageState extends State<ComparisonPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            // Personalized Investment Tips
-            _buildCard(
-              title: 'Personalized Investment Tips',
-              content: Column(
-                children: [
-                  const Text(
-                    'Get tailored FD investment advice through our customer support. Schedule a cold call to discuss your goals!',
-                    style: TextStyle(
-                      fontFamily: 'OpenSans',
-                      fontSize: 16,
-                      color: AppColors.secondaryText,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => Get.to(() => const HelpCustomerServicePage()),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBrand,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Get Advice',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
