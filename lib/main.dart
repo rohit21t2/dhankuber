@@ -16,6 +16,7 @@ import 'app/controllers/payments_controller.dart';
 import 'app/controllers/profile_controller.dart';
 import 'app/controllers/goal_based_plans_controller.dart';
 import 'app/controllers/comparison_controller.dart'; // Added import for ComparisonController
+import 'app/controllers/notification_controller.dart'; // Added import for NotificationController
 import 'app/ui/pages/login_page.dart';
 import 'app/ui/pages/otp_page.dart';
 import 'app/ui/pages/name_input_page.dart';
@@ -40,6 +41,7 @@ import 'app/ui/pages/terms_conditions_page.dart';
 import 'app/ui/pages/user_agreements_page.dart';
 import 'app/ui/pages/help_customer_service_page.dart';
 import 'app/ui/pages/splash_screen.dart';
+import 'app/ui/pages/notifications_page.dart'; // Added import for NotificationsPage
 import 'app/utils/colors.dart';
 import 'app/utils/translations.dart'; // Ensure this import is correct
 import 'firebase_options.dart';
@@ -53,7 +55,7 @@ import 'app/ui/pages/fd_details_page.dart'; // Added import
 String getFormattedTime() {
   final now = DateTime.now();
   final formatter = DateFormat('hh:mm a z, MMMM dd, yyyy');
-  return formatter.format(now); // e.g., 10:57 AM IST, May 26, 2025
+  return formatter.format(now); // e.g., 11:16 AM IST, May 26, 2025
 }
 
 void main() async {
@@ -81,7 +83,8 @@ void main() async {
   Get.lazyPut(() => PaymentsController());
   Get.lazyPut(() => ProfileController());
   Get.lazyPut(() => GoalBasedPlansController());
-  Get.lazyPut(() => ComparisonController()); // Added ComparisonController
+  Get.lazyPut(() => ComparisonController());
+  Get.lazyPut(() => NotificationController()); // Added NotificationController
 
   runApp(const DhankuberApp());
 }
@@ -273,6 +276,10 @@ class DhankuberApp extends StatelessWidget {
         GetPage(
           name: '/help_customer_service',
           page: () => const HelpCustomerServicePage(),
+        ),
+        GetPage(
+          name: '/notifications',
+          page: () => const NotificationsPage(), // Added route for NotificationsPage
         ),
         GetPage(
           name: '/fd_details',

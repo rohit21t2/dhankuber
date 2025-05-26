@@ -6,7 +6,7 @@ import '../components/custom_appbar.dart';
 import 'fd_comparison_screen.dart';
 import 'fd_calculator_screen.dart';
 import 'help_customer_service_page.dart';
-import '../controllers/comparison_controller.dart'; // Import the controller
+import '../../controllers/comparison_controller.dart'; // Fixed import path
 
 class ComparisonPage extends StatefulWidget {
   const ComparisonPage({super.key});

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart'; // Added for WhatsApp redirect
+import 'package:intl/intl.dart'; // For formatting notification timestamps
 import '../../controllers/home_controller.dart';
 import '../../controllers/fd_plans_controller.dart'; // Added for FDPlansController
 import '../../controllers/trending_plans_controller.dart'; // Re-added for TrendingPlansController
+import '../../controllers/notification_controller.dart'; // Added for NotificationController
 import '../components/custom_appbar.dart';
 import '../../utils/colors.dart';
 import 'all_fd_plans_page.dart';
@@ -12,6 +14,7 @@ import 'goal_based_plans_page.dart';
 import 'fd_trial_section_page.dart';
 import 'fd_details_page.dart'; // Added for FDDetailsPage
 import 'trending_plans_page.dart'; // Imports TrendingPlansPage
+import 'notifications_page.dart'; // Added for NotificationsPage
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,6 +26,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late FDPlansController fdPlansController;
   late TrendingPlansController trendingPlansController;
+  late NotificationController notificationController; // Added for notifications
   final String fdPlansControllerTag = 'HomePageFDPlansController'; // Unique tag for FDPlansController
   final String trendingControllerTag = 'HomePageTrendingPlansController'; // Unique tag for TrendingPlansController
 
@@ -32,6 +36,7 @@ class _HomePageState extends State<HomePage> {
     // Create tagged instances of controllers for HomePage
     fdPlansController = Get.put(FDPlansController(), tag: fdPlansControllerTag);
     trendingPlansController = Get.put(TrendingPlansController(), tag: trendingControllerTag);
+    notificationController = Get.put(NotificationController()); // Initialize NotificationController
   }
 
   @override
@@ -117,10 +122,123 @@ class _HomePageState extends State<HomePage> {
         content: SizedBox(
           height: 300,
           child: WebViewWidget(
-            controller: WebViewController()
-              ..loadRequest(Uri.parse(url)),
+            controller: WebViewController()..loadRequest(Uri.parse(url)),
           ),
         ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        backgroundColor: AppColors.neutralLightGray,
+      ),
+    );
+  }
+
+  // Function to show notifications dialog
+  void _showNotificationsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          'Notifications',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primaryText,
+          ),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 300,
+          child: Obx(() => notificationController.notifications.isEmpty
+              ? const Center(
+            child: Text(
+              'No notifications available.',
+              style: TextStyle(
+                fontFamily: 'OpenSans',
+                fontSize: 16,
+                color: AppColors.secondaryText,
+              ),
+            ),
+          )
+              : ListView.builder(
+            itemCount: notificationController.notifications.length > 3
+                ? 3
+                : notificationController.notifications.length, // Show up to 3 notifications
+            itemBuilder: (context, index) {
+              final notification = notificationController.notifications[index];
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                title: Text(
+                  notification.title,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryText,
+                  ),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      notification.message,
+                      style: const TextStyle(
+                        fontFamily: 'OpenSans',
+                        fontSize: 12,
+                        color: AppColors.secondaryText,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      DateFormat('MMM dd, yyyy – hh:mm a')
+                          .format(notification.timestamp),
+                      style: const TextStyle(
+                        fontFamily: 'OpenSans',
+                        fontSize: 10,
+                        color: AppColors.secondaryText,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          )),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Close',
+              style: TextStyle(
+                fontFamily: 'OpenSans',
+                fontSize: 14,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Get.to(() => const NotificationsPage());
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBrand,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'View All',
+              style: TextStyle(
+                fontFamily: 'OpenSans',
+                fontSize: 14,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -373,6 +491,39 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
+          Obx(() => Stack(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.notifications,
+                  color: AppColors.primaryText,
+                  size: 28,
+                ),
+                tooltip: 'Notifications',
+                onPressed: () => _showNotificationsDialog(context),
+              ),
+              if (notificationController.getUnreadCount() > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.errorRed,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      notificationController.getUnreadCount().toString(),
+                      style: const TextStyle(
+                        fontFamily: 'OpenSans',
+                        fontSize: 10,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          )),
         ],
       ),
       body: Obx(() => SingleChildScrollView(

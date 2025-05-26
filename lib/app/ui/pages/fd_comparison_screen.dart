@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../utils/colors.dart';
 import '../components/custom_appbar.dart';
 import 'comparison_page.dart';
+import '../../controllers/comparison_controller.dart'; // Added import for FDPlan
 
 class FDComparisonScreen extends StatefulWidget {
   final List<FDPlan> selectedFDPlans;
