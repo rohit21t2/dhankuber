@@ -44,15 +44,59 @@ class _HomePageState extends State<HomePage> {
 
   // Function to launch WhatsApp
   Future<void> _launchWhatsApp() async {
-    final String phoneNumber = '+917506154578';
+    final String phoneNumber = '+917506154578'; // Added country code explicitly
     final String message = 'Hello, I would like to get advice from experts.';
-    final String url = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
+    // Use the whatsapp:// scheme to directly open WhatsApp
+    final String whatsappUrl = 'whatsapp://send?phone=$phoneNumber&text=${Uri.encodeComponent(message)}';
+    final Uri whatsappUri = Uri.parse(whatsappUrl);
 
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    } else {
-      Get.snackbar('Error', 'Could not launch WhatsApp',
-          backgroundColor: AppColors.errorRed, colorText: Colors.white);
+    try {
+      // Debug: Check if we can launch the WhatsApp URL
+      bool canLaunchWhatsapp = await canLaunchUrl(whatsappUri);
+      print('Can launch WhatsApp URL ($whatsappUrl): $canLaunchWhatsapp');
+
+      if (canLaunchWhatsapp) {
+        await launchUrl(
+          whatsappUri,
+          mode: LaunchMode.externalApplication,
+        );
+        print('WhatsApp launched successfully');
+      } else {
+        // Fallback to browser-based WhatsApp link
+        final String fallbackUrl = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
+        final Uri fallbackUri = Uri.parse(fallbackUrl);
+
+        // Debug: Check if we can launch the fallback URL
+        bool canLaunchFallback = await canLaunchUrl(fallbackUri);
+        print('Can launch fallback URL ($fallbackUrl): $canLaunchFallback');
+
+        if (canLaunchFallback) {
+          await launchUrl(
+            fallbackUri,
+            mode: LaunchMode.externalApplication,
+          );
+          print('Fallback WhatsApp URL launched successfully');
+        } else {
+          Get.snackbar(
+            'Error',
+            'Could not open WhatsApp. Please ensure WhatsApp is installed and try again.',
+            backgroundColor: AppColors.errorRed,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 5),
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        }
+      }
+    } catch (e) {
+      print('Error launching WhatsApp: $e');
+      Get.snackbar(
+        'Error',
+        'An error occurred while trying to launch WhatsApp: $e',
+        backgroundColor: AppColors.errorRed,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 5),
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
@@ -91,23 +135,33 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: 'Dhankuber',
-        titleTextStyle: const TextStyle(
-          fontFamily: 'Poppins',
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: AppColors.primaryText,
-        ),
-        leadingWidth: 60,
+        title: '', // Removed the "Dhankuber" text
+        leadingWidth: 180, // Increased width to prevent overflow
         leading: Padding(
           padding: const EdgeInsets.only(left: 8.0, right: 5.0),
-          child: Center(
-            child: Image.asset(
-              'assets/images/logo.png',
-              width: 50,
-              height: 50,
-              fit: BoxFit.contain,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/images/logo.png',
+                width: 50,
+                height: 50,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(width: 8), // Space between logo and text
+              Flexible(
+                child: Text(
+                  'Dhankuber',
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18, // Reduced font size to prevent overflow
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryText,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
         titleSpacing: 0,
