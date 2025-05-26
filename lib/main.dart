@@ -52,7 +52,7 @@ import 'app/ui/pages/fd_details_page.dart'; // Added import
 String getFormattedTime() {
   final now = DateTime.now();
   final formatter = DateFormat('hh:mm a z, MMMM dd, yyyy');
-  return formatter.format(now); // e.g., 10:24 PM IST, May 25, 2025
+  return formatter.format(now); // e.g., 09:05 AM IST, May 26, 2025
 }
 
 void main() async {
@@ -207,7 +207,7 @@ class DhankuberApp extends StatelessWidget {
         ),
         GetPage(
           name: '/trending_plans',
-          page: () => const TrendingPlansPage(),
+          page: () => TrendingPlansPage(), // Removed const since it's stateful
         ),
         GetPage(
           name: '/goal_based_plans',
@@ -222,16 +222,12 @@ class DhankuberApp extends StatelessWidget {
           page: () => const FDBookingPage(),
         ),
         GetPage(
-          name: '/fd_details',
-          page: () => FDDetailsPage(goal: Get.arguments as Map<String, dynamic>),
-        ),
-        GetPage(
           name: '/comparison',
           page: () => const ComparisonPage(),
         ),
         GetPage(
           name: '/fd_comparison',
-          page: () => const FDComparisonScreen(selectedFDPlans: []),
+          page: () => const FDComparisonScreen(selectedFDPlans: []), // Added default empty list
         ),
         GetPage(
           name: '/fd_calculator',
@@ -275,6 +271,15 @@ class DhankuberApp extends StatelessWidget {
         GetPage(
           name: '/help_customer_service',
           page: () => const HelpCustomerServicePage(),
+        ),
+        GetPage(
+          name: '/fd_details',
+          page: () {
+            final goal = Get.arguments as Map<String, dynamic>?;
+            return FDDetailsPage(
+              goal: goal ?? {'goalName': 'Default', 'expectedReturn': '0.0% p.a.', 'tenure': '0 years', 'taxSaving': false},
+            );
+          },
         ),
       ],
     );

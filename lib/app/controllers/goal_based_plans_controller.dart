@@ -1,57 +1,74 @@
 import 'package:get/get.dart';
+import 'fd_plans_controller.dart'; // Import FDPlansController to access allFDs
 
 class GoalBasedPlansController extends GetxController {
-  // Goal-Based FDs - Updated with new categories and goals
-  final RxList<Map<String, dynamic>> goalBasedFDs = [
-    // Short-Term Goal FDs (1-3 years)
-    {
-      'category': 'Short-Term Goal FDs (1-3 years)',
-      'goals': [
-        {'goalName': 'Emergency Fund', 'expectedReturn': '7.5% p.a.', 'tenure': '2 years', 'duration': '2 years'},
-        {'goalName': 'Vacation Fund', 'expectedReturn': '7.5% p.a.', 'tenure': '3 years', 'duration': '3 years'},
-        {'goalName': 'Gadgets/Vehicle Purchase', 'expectedReturn': '7.0% p.a.', 'tenure': '1 year', 'duration': '1 year'},
-        {'goalName': 'Wedding Expenses', 'expectedReturn': '7.2% p.a.', 'tenure': '2 years', 'duration': '2 years'},
-      ],
-    },
-    // Medium-Term Goal FDs (3-7 years)
-    {
-      'category': 'Medium-Term Goal FDs (3-7 years)',
-      'goals': [
-        {'goalName': 'Higher Education Fund', 'expectedReturn': '8.0% p.a.', 'tenure': '5 years', 'duration': '5 years'},
-        {'goalName': 'Down Payment for House', 'expectedReturn': '8.2% p.a.', 'tenure': '4 years', 'duration': '4 years'},
-        {'goalName': 'Business Startup Fund', 'expectedReturn': '8.5% p.a.', 'tenure': '6 years', 'duration': '6 years'},
-        {'goalName': 'Big Family Event', 'expectedReturn': '8.0% p.a.', 'tenure': '5 years', 'duration': '5 years'},
-      ],
-    },
-    // Long-Term Goal FDs (7+ years)
-    {
-      'category': 'Long-Term Goal FDs (7+ years)',
-      'goals': [
-        {'goalName': 'Retirement Fund', 'expectedReturn': '9.0% p.a.', 'tenure': '10 years', 'duration': '10 years'},
-        {'goalName': 'Child Marriage/Studies', 'expectedReturn': '8.8% p.a.', 'tenure': '12 years', 'duration': '12 years'},
-        {'goalName': 'Wealth Creation', 'expectedReturn': '9.2% p.a.', 'tenure': '15 years', 'duration': '15 years'},
-        {'goalName': 'Legacy Planning', 'expectedReturn': '9.0% p.a.', 'tenure': '20 years', 'duration': '20 years'},
-      ],
-    },
-    // Tax-Saving FDs (5 years lock-in)
-    {
-      'category': 'Tax-Saving FDs (5 years lock-in)',
-      'goals': [
-        {'goalName': 'Tax-Saving FD', 'expectedReturn': '7.8% p.a.', 'tenure': '5 years', 'duration': '5 years'},
-      ],
-    },
-    // Recurring Deposit Based Goal FDs
-    {
-      'category': 'Recurring Deposit Based Goal FDs',
-      'goals': [
-        {'goalName': 'Vacation Fund (RD)', 'expectedReturn': '7.0% p.a.', 'tenure': '3 years', 'duration': '3 years'},
-        {'goalName': 'Education Fund (RD)', 'expectedReturn': '7.5% p.a.', 'tenure': '5 years', 'duration': '5 years'},
-      ],
-    },
-  ].obs;
+  // Goal-Based FDs - Categorized using data from FDPlansController
+  final RxList<Map<String, dynamic>> goalBasedFDs = <Map<String, dynamic>>[].obs;
 
   @override
   void onInit() {
     super.onInit();
+    _categorizeFDs();
+  }
+
+  void _categorizeFDs() {
+    // Get FDPlansController instance
+    final FDPlansController fdPlansController = Get.find<FDPlansController>();
+    final List<Map<String, dynamic>> allFDs = fdPlansController.allFDs;
+
+    // Categorize FDs into goal-based categories
+    List<Map<String, dynamic>> shortTermGoals = [];
+    List<Map<String, dynamic>> mediumTermGoals = [];
+    List<Map<String, dynamic>> longTermGoals = [];
+    List<Map<String, dynamic>> taxSavingGoals = [];
+
+    for (var fd in allFDs) {
+      final tenure = fd['tenureMonths'] as int;
+
+      if (fd['taxSaving'] == true) {
+        taxSavingGoals.add({
+          'goalName': 'Tax-Saving FD',
+          'expectedReturn': fd['interestRate'],
+          'tenure': fd['plan'],
+          'duration': fd['plan'],
+          'bank': fd['bank'],
+          'issuerType': fd['issuerType'],
+        });
+      } else if (tenure <= 24) { // 1-2 years
+        shortTermGoals.add({
+          'goalName': tenure <= 12 ? 'Gadgets/Vehicle Purchase' : 'Emergency Fund',
+          'expectedReturn': fd['interestRate'],
+          'tenure': fd['plan'],
+          'duration': fd['plan'],
+          'bank': fd['bank'],
+          'issuerType': fd['issuerType'],
+        });
+      } else if (tenure > 24 && tenure <= 36) { // 2-3 years
+        mediumTermGoals.add({
+          'goalName': 'Down Payment for House',
+          'expectedReturn': fd['interestRate'],
+          'tenure': fd['plan'],
+          'duration': fd['plan'],
+          'bank': fd['bank'],
+          'issuerType': fd['issuerType'],
+        });
+      } else if (tenure > 36) { // 3+ years
+        longTermGoals.add({
+          'goalName': tenure == 60 ? 'Retirement Fund' : 'Wealth Creation',
+          'expectedReturn': fd['interestRate'],
+          'tenure': fd['plan'],
+          'duration': fd['plan'],
+          'bank': fd['bank'],
+          'issuerType': fd['issuerType'],
+        });
+      }
+    }
+
+    goalBasedFDs.assignAll([
+      {'category': 'Short-Term Goal FDs (1-2 years)', 'goals': shortTermGoals},
+      {'category': 'Medium-Term Goal FDs (2-3 years)', 'goals': mediumTermGoals},
+      {'category': 'Long-Term Goal FDs (3+ years)', 'goals': longTermGoals},
+      {'category': 'Tax-Saving FDs (5 years lock-in)', 'goals': taxSavingGoals},
+    ]);
   }
 }

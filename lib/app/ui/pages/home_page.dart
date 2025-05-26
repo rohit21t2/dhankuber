@@ -3,15 +3,44 @@ import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:url_launcher/url_launcher.dart'; // Added for WhatsApp redirect
 import '../../controllers/home_controller.dart';
+import '../../controllers/fd_plans_controller.dart'; // Added for FDPlansController
+import '../../controllers/trending_plans_controller.dart'; // Re-added for TrendingPlansController
 import '../components/custom_appbar.dart';
 import '../../utils/colors.dart';
 import 'all_fd_plans_page.dart';
-import 'trending_plans_page.dart';
 import 'goal_based_plans_page.dart';
 import 'fd_trial_section_page.dart';
+import 'fd_details_page.dart'; // Added for FDDetailsPage
+import 'trending_plans_page.dart'; // Imports TrendingPlansPage
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  late FDPlansController fdPlansController;
+  late TrendingPlansController trendingPlansController;
+  final String fdPlansControllerTag = 'HomePageFDPlansController'; // Unique tag for FDPlansController
+  final String trendingControllerTag = 'HomePageTrendingPlansController'; // Unique tag for TrendingPlansController
+
+  @override
+  void initState() {
+    super.initState();
+    // Create tagged instances of controllers for HomePage
+    fdPlansController = Get.put(FDPlansController(), tag: fdPlansControllerTag);
+    trendingPlansController = Get.put(TrendingPlansController(), tag: trendingControllerTag);
+  }
+
+  @override
+  void dispose() {
+    // Delete the tagged controller instances when the page is disposed
+    Get.delete<FDPlansController>(tag: fdPlansControllerTag);
+    Get.delete<TrendingPlansController>(tag: trendingControllerTag);
+    super.dispose();
+  }
 
   // Function to launch WhatsApp
   Future<void> _launchWhatsApp() async {
@@ -442,7 +471,7 @@ class HomePage extends StatelessWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () => Get.to(() => const TrendingPlansPage()),
+                  onPressed: () => Get.toNamed('/trending_plans'), // Use named route
                   child: Text(
                     'view_all'.tr,
                     style: const TextStyle(
@@ -455,13 +484,20 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 200, // Increased from 180 to 200
+              height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: homeController.trendingFDs.length,
+                itemCount: trendingPlansController.getTrendingFDsPreview(3).length, // Show 3 FDs as a preview
                 itemBuilder: (context, index) {
-                  final fd = homeController.trendingFDs[index];
-                  return _buildFDCard(fd, () => Get.to(() => const TrendingPlansPage()), 'trending');
+                  final fd = trendingPlansController.getTrendingFDsPreview(3)[index];
+                  return _buildFDCard(fd, () {
+                    Get.to(() => FDDetailsPage(goal: {
+                      'goalName': fd['bank'],
+                      'expectedReturn': fd['interestRate'],
+                      'tenure': fd['plan'],
+                      'taxSaving': fd['taxSaving'],
+                    }));
+                  }, 'trending');
                 },
               ),
             ),
@@ -492,13 +528,20 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SizedBox(
-              height: 200, // Increased from 180 to 200
+              height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: homeController.allFDs.length,
+                itemCount: fdPlansController.getAllFDsPreview(3).length, // Show 3 FDs as a preview
                 itemBuilder: (context, index) {
-                  final fd = homeController.allFDs[index];
-                  return _buildFDCard(fd, () => Get.to(() => const AllFDPlansPage()), 'all');
+                  final fd = fdPlansController.getAllFDsPreview(3)[index];
+                  return _buildFDCard(fd, () {
+                    Get.to(() => FDDetailsPage(goal: {
+                      'goalName': fd['bank'],
+                      'expectedReturn': fd['interestRate'],
+                      'tenure': fd['plan'],
+                      'taxSaving': fd['taxSaving'],
+                    }));
+                  }, 'all');
                 },
               ),
             ),
@@ -512,11 +555,7 @@ class HomePage extends StatelessWidget {
                 height: 120,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Colors.orange, Color(0xFF2E7D32)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: const Color(0xFF2E7D32), // Solid dark green color
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -574,7 +613,7 @@ class HomePage extends StatelessWidget {
     Decoration backgroundDecoration;
     if (section == 'trending') {
       backgroundDecoration = BoxDecoration(
-        color: const Color(0xFF2E7D32),
+        color: AppColors.primaryBrand, // Orange color matching All FDs
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -586,11 +625,7 @@ class HomePage extends StatelessWidget {
       );
     } else if (section == 'goalBased') {
       backgroundDecoration = BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.orange, Color(0xFF2E7D32)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: const Color(0xFF2E7D32), // Solid dark green color
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -617,7 +652,7 @@ class HomePage extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 220, // Increased from 200 to 220
+        width: 220,
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.all(12),
         decoration: backgroundDecoration,
@@ -627,8 +662,8 @@ class HomePage extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  width: 48, // Increased from 40 to 48
-                  height: 48, // Increased from 40 to 48
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 2),
@@ -644,7 +679,7 @@ class HomePage extends StatelessWidget {
                     fd['bank'],
                     style: const TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 18, // Increased from 16 to 18
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -654,35 +689,35 @@ class HomePage extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14), // Increased from 12 to 14
+            const SizedBox(height: 14),
             Text(
               'Tenure: ${fd['plan']}',
               style: const TextStyle(
                 fontFamily: 'OpenSans',
-                fontSize: 16, // Increased from 14 to 16
+                fontSize: 16,
                 color: Colors.white,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 10), // Increased from 8 to 10
+            const SizedBox(height: 10),
             Text(
               'Interest Rate: ${fd['interestRate']}',
               style: const TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 16, // Increased from 14 to 16
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.white,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 10), // Increased from 8 to 10
+            const SizedBox(height: 10),
             Text(
               'Issuer: ${fd['issuerType']}',
               style: const TextStyle(
                 fontFamily: 'OpenSans',
-                fontSize: 16, // Increased from 14 to 16
+                fontSize: 16,
                 color: Colors.white,
               ),
               maxLines: 1,
