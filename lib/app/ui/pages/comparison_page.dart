@@ -6,26 +6,7 @@ import '../components/custom_appbar.dart';
 import 'fd_comparison_screen.dart';
 import 'fd_calculator_screen.dart';
 import 'help_customer_service_page.dart';
-
-class FDPlan {
-  final String bankName;
-  final double interestRate;
-  final int tenureMonths;
-  final int lockInMonths;
-  final double rating;
-  final int minInvestment;
-  final String goal;
-
-  FDPlan({
-    required this.bankName,
-    required this.interestRate,
-    required this.tenureMonths,
-    required this.lockInMonths,
-    required this.rating,
-    required this.minInvestment,
-    required this.goal,
-  });
-}
+import '../controllers/comparison_controller.dart'; // Import the controller
 
 class ComparisonPage extends StatefulWidget {
   const ComparisonPage({super.key});
@@ -35,30 +16,13 @@ class ComparisonPage extends StatefulWidget {
 }
 
 class _ComparisonPageState extends State<ComparisonPage> {
-  final List<FDPlan> allFDPlans = [
-    FDPlan(bankName: 'SBI', interestRate: 6.5, tenureMonths: 36, lockInMonths: 36, rating: 4.5, minInvestment: 10000, goal: 'Retirement'),
-    FDPlan(bankName: 'HDFC', interestRate: 7.0, tenureMonths: 24, lockInMonths: 24, rating: 4.0, minInvestment: 5000, goal: 'Emergency Fund'),
-    FDPlan(bankName: 'ICICI', interestRate: 6.8, tenureMonths: 12, lockInMonths: 12, rating: 4.2, minInvestment: 10000, goal: 'Short-Term'),
-    FDPlan(bankName: 'Axis', interestRate: 7.2, tenureMonths: 48, lockInMonths: 48, rating: 4.3, minInvestment: 15000, goal: 'Retirement'),
-    FDPlan(bankName: 'Bajaj Finance', interestRate: 8.0, tenureMonths: 36, lockInMonths: 36, rating: 4.8, minInvestment: 25000, goal: 'Retirement'),
-    FDPlan(bankName: 'Shriram Finance', interestRate: 8.5, tenureMonths: 60, lockInMonths: 60, rating: 4.7, minInvestment: 20000, goal: 'Retirement'),
-    FDPlan(bankName: 'Mahindra Finance', interestRate: 8.1, tenureMonths: 24, lockInMonths: 24, rating: 4.6, minInvestment: 5000, goal: 'Emergency Fund'),
-    FDPlan(bankName: 'IndusInd', interestRate: 7.75, tenureMonths: 18, lockInMonths: 18, rating: 4.4, minInvestment: 10000, goal: 'Short-Term'),
-    FDPlan(bankName: 'Canara Bank', interestRate: 6.7, tenureMonths: 36, lockInMonths: 36, rating: 4.1, minInvestment: 10000, goal: 'Retirement'),
-    FDPlan(bankName: 'Post Office', interestRate: 6.9, tenureMonths: 60, lockInMonths: 60, rating: 4.0, minInvestment: 1000, goal: 'Retirement'),
-  ];
+  late ComparisonController comparisonController;
 
-  List<FDPlan?> selectedFDPlans = [null, null, null]; // Allow 3 nullable selections
-
-  List<FDPlan> getAvailableFDs(int fieldIndex) {
-    // Exclude FDs selected in other fields
-    List<FDPlan?> otherSelections = selectedFDPlans.asMap().entries
-        .where((entry) => entry.key != fieldIndex)
-        .map((entry) => entry.value)
-        .toList();
-    return allFDPlans
-        .where((plan) => !otherSelections.contains(plan))
-        .toList();
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the ComparisonController
+    comparisonController = Get.put(ComparisonController());
   }
 
   @override
@@ -73,11 +37,11 @@ class _ComparisonPageState extends State<ComparisonPage> {
             // FD Comparison Card
             _buildCard(
               title: 'Compare Fixed Deposits',
-              content: Column(
+              content: Obx(() => Column(
                 children: [
                   Autocomplete<FDPlan>(
                     optionsBuilder: (TextEditingValue textEditingValue) {
-                      final availableFDs = getAvailableFDs(0);
+                      final availableFDs = comparisonController.getAvailableFDs(0);
                       if (textEditingValue.text.isEmpty) {
                         return availableFDs;
                       }
@@ -112,23 +76,19 @@ class _ComparisonPageState extends State<ComparisonPage> {
                         ),
                         onChanged: (value) {
                           if (value.isEmpty) {
-                            setState(() {
-                              selectedFDPlans[0] = null;
-                            });
+                            comparisonController.clearSelection(0);
                           }
                         },
                       );
                     },
                     onSelected: (FDPlan plan) {
-                      setState(() {
-                        selectedFDPlans[0] = plan;
-                      });
+                      comparisonController.updateSelectedFD(0, plan);
                     },
                   ),
                   const SizedBox(height: 16),
                   Autocomplete<FDPlan>(
                     optionsBuilder: (TextEditingValue textEditingValue) {
-                      final availableFDs = getAvailableFDs(1);
+                      final availableFDs = comparisonController.getAvailableFDs(1);
                       if (textEditingValue.text.isEmpty) {
                         return availableFDs;
                       }
@@ -163,23 +123,19 @@ class _ComparisonPageState extends State<ComparisonPage> {
                         ),
                         onChanged: (value) {
                           if (value.isEmpty) {
-                            setState(() {
-                              selectedFDPlans[1] = null;
-                            });
+                            comparisonController.clearSelection(1);
                           }
                         },
                       );
                     },
                     onSelected: (FDPlan plan) {
-                      setState(() {
-                        selectedFDPlans[1] = plan;
-                      });
+                      comparisonController.updateSelectedFD(1, plan);
                     },
                   ),
                   const SizedBox(height: 16),
                   Autocomplete<FDPlan>(
                     optionsBuilder: (TextEditingValue textEditingValue) {
-                      final availableFDs = getAvailableFDs(2);
+                      final availableFDs = comparisonController.getAvailableFDs(2);
                       if (textEditingValue.text.isEmpty) {
                         return availableFDs;
                       }
@@ -214,34 +170,25 @@ class _ComparisonPageState extends State<ComparisonPage> {
                         ),
                         onChanged: (value) {
                           if (value.isEmpty) {
-                            setState(() {
-                              selectedFDPlans[2] = null;
-                            });
+                            comparisonController.clearSelection(2);
                           }
                         },
                       );
                     },
                     onSelected: (FDPlan plan) {
-                      setState(() {
-                        selectedFDPlans[2] = plan;
-                      });
+                      comparisonController.updateSelectedFD(2, plan);
                     },
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Goal-Based Suggestion: ${selectedFDPlans.any((plan) => plan != null) ? selectedFDPlans.firstWhere((plan) => plan != null, orElse: () => allFDPlans[0])!.goal : 'Select FDs to see suggestions'}',
-                    style: const TextStyle(
-                      fontFamily: 'OpenSans',
-                      fontSize: 14,
-                      color: AppColors.secondaryText,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: selectedFDPlans.where((plan) => plan != null).length >= 2
+                    onPressed: comparisonController.selectedFDPlans
+                        .where((plan) => plan != null)
+                        .length >= 2
                         ? () => Get.to(() => FDComparisonScreen(
-                      selectedFDPlans:
-                      selectedFDPlans.where((plan) => plan != null).toList().cast<FDPlan>(),
+                      selectedFDPlans: comparisonController.selectedFDPlans
+                          .where((plan) => plan != null)
+                          .toList()
+                          .cast<FDPlan>(),
                     ))
                         : null,
                     style: ElevatedButton.styleFrom(
@@ -260,7 +207,7 @@ class _ComparisonPageState extends State<ComparisonPage> {
                     ),
                   ),
                 ],
-              ),
+              )),
             ),
             const SizedBox(height: 16),
             // FD Calculator Card
