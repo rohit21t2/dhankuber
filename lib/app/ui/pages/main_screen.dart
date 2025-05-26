@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart'; // Import intl for date formatting
 import '../../controllers/main_screen_controller.dart';
 import 'home_page.dart';
-import 'comparison_page.dart';
 import 'portfolio_page.dart';
 import 'payments_page.dart';
 import 'profile_page.dart';
@@ -38,7 +37,6 @@ class _MainScreenState extends State<MainScreen> {
     // List of SVG assets to preload
     const svgAssets = [
       'assets/icons/home_selected.svg',
-      'assets/icons/compare.svg',
       'assets/icons/portfolio.svg',
       'assets/icons/payments.svg',
       'assets/icons/profile_outline.svg',
@@ -71,7 +69,6 @@ class _MainScreenState extends State<MainScreen> {
               child: Column(
                 children: [
                   SvgPicture.asset('assets/icons/home_selected.svg', height: 24),
-                  SvgPicture.asset('assets/icons/compare.svg', height: 24),
                   SvgPicture.asset('assets/icons/portfolio.svg', height: 24),
                   SvgPicture.asset('assets/icons/payments.svg', height: 24),
                   SvgPicture.asset('assets/icons/profile_outline.svg', height: 24),
@@ -103,18 +100,8 @@ class _MainScreenState extends State<MainScreen> {
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
-              'assets/icons/compare.svg',
-              color: controller.currentIndex.value == 1
-                  ? AppColors.primaryBrand
-                  : AppColors.secondaryText,
-              height: 24,
-            ),
-            label: 'Comparison',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
               'assets/icons/portfolio.svg',
-              color: controller.currentIndex.value == 2
+              color: controller.currentIndex.value == 1
                   ? AppColors.primaryBrand
                   : AppColors.secondaryText,
               height: 24,
@@ -124,7 +111,7 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
               'assets/icons/payments.svg',
-              color: controller.currentIndex.value == 3
+              color: controller.currentIndex.value == 2
                   ? AppColors.primaryBrand
                   : AppColors.secondaryText,
               height: 24,
@@ -134,7 +121,7 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
               'assets/icons/profile_outline.svg',
-              color: controller.currentIndex.value == 4
+              color: controller.currentIndex.value == 3
                   ? AppColors.primaryBrand
                   : AppColors.secondaryText,
               height: 24,

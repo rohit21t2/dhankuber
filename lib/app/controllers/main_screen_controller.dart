@@ -3,7 +3,6 @@ import 'package:flutter/material.dart'; // Added for Widget type
 import 'package:get/get.dart';
 import 'package:intl/intl.dart'; // Added for date formatting
 import '../ui/pages/home_page.dart';
-import '../ui/pages/comparison_page.dart';
 import '../ui/pages/portfolio_page.dart';
 import '../ui/pages/payments_page.dart';
 import '../ui/pages/profile_page.dart';
@@ -21,7 +20,6 @@ class MainScreenController extends GetxController {
   // Getter for the list of pages corresponding to the bottom navigation tabs
   List<Widget> get pages => [
     const HomePage(),
-    const ComparisonPage(),
     const PortfolioPage(),
     const PaymentsPage(),
     const ProfilePage(),

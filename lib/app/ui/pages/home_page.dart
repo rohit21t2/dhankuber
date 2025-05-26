@@ -7,6 +7,7 @@ import '../../controllers/home_controller.dart';
 import '../../controllers/fd_plans_controller.dart'; // Added for FDPlansController
 import '../../controllers/trending_plans_controller.dart'; // Re-added for TrendingPlansController
 import '../../controllers/notification_controller.dart'; // Added for NotificationController
+import '../../controllers/comparison_controller.dart'; // Added for ComparisonController
 import '../components/custom_appbar.dart';
 import '../../utils/colors.dart';
 import 'all_fd_plans_page.dart';
@@ -15,6 +16,9 @@ import 'fd_trial_section_page.dart';
 import 'fd_details_page.dart'; // Added for FDDetailsPage
 import 'trending_plans_page.dart'; // Imports TrendingPlansPage
 import 'notifications_page.dart'; // Added for NotificationsPage
+import 'fd_comparison_screen.dart'; // Added for FDComparisonScreen
+import 'fd_calculator_screen.dart'; // Added for FDCalculatorScreen
+import 'package:flutter_svg/flutter_svg.dart'; // Added for SVG icons
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,6 +31,7 @@ class _HomePageState extends State<HomePage> {
   late FDPlansController fdPlansController;
   late TrendingPlansController trendingPlansController;
   late NotificationController notificationController; // Added for notifications
+  late ComparisonController comparisonController; // Added for comparison functionality
   final String fdPlansControllerTag = 'HomePageFDPlansController'; // Unique tag for FDPlansController
   final String trendingControllerTag = 'HomePageTrendingPlansController'; // Unique tag for TrendingPlansController
 
@@ -37,6 +42,7 @@ class _HomePageState extends State<HomePage> {
     fdPlansController = Get.put(FDPlansController(), tag: fdPlansControllerTag);
     trendingPlansController = Get.put(TrendingPlansController(), tag: trendingControllerTag);
     notificationController = Get.put(NotificationController()); // Initialize NotificationController
+    comparisonController = Get.put(ComparisonController()); // Initialize ComparisonController
   }
 
   @override
@@ -808,6 +814,219 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+            const SizedBox(height: 24),
+
+            // Comparison Section (Moved from ComparisonPage)
+            // FD Comparison Card
+            _buildCard(
+              title: 'Compare Fixed Deposits',
+              content: Obx(() => Column(
+                children: [
+                  Autocomplete<FDPlan>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      final availableFDs = comparisonController.getAvailableFDs(0);
+                      if (textEditingValue.text.isEmpty) {
+                        return availableFDs;
+                      }
+                      return availableFDs.where((plan) => plan.bankName
+                          .toLowerCase()
+                          .contains(textEditingValue.text.toLowerCase()));
+                    },
+                    displayStringForOption: (FDPlan plan) =>
+                    '${plan.bankName} (${plan.interestRate}% | ${plan.tenureMonths} months)',
+                    fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                      return TextFormField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          labelText: 'Select FD 1',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.secondaryText),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.secondaryText),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.primaryBrand),
+                          ),
+                          floatingLabelStyle: const TextStyle(
+                            color: AppColors.primaryBrand,
+                            fontFamily: 'OpenSans',
+                          ),
+                        ),
+                        onChanged: (value) {
+                          if (value.isEmpty) {
+                            comparisonController.clearSelection(0);
+                          }
+                        },
+                      );
+                    },
+                    onSelected: (FDPlan plan) {
+                      comparisonController.updateSelectedFD(0, plan);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Autocomplete<FDPlan>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      final availableFDs = comparisonController.getAvailableFDs(1);
+                      if (textEditingValue.text.isEmpty) {
+                        return availableFDs;
+                      }
+                      return availableFDs.where((plan) => plan.bankName
+                          .toLowerCase()
+                          .contains(textEditingValue.text.toLowerCase()));
+                    },
+                    displayStringForOption: (FDPlan plan) =>
+                    '${plan.bankName} (${plan.interestRate}% | ${plan.tenureMonths} months)',
+                    fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                      return TextFormField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          labelText: 'Select FD 2',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.secondaryText),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.secondaryText),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.primaryBrand),
+                          ),
+                          floatingLabelStyle: const TextStyle(
+                            color: AppColors.primaryBrand,
+                            fontFamily: 'OpenSans',
+                          ),
+                        ),
+                        onChanged: (value) {
+                          if (value.isEmpty) {
+                            comparisonController.clearSelection(1);
+                          }
+                        },
+                      );
+                    },
+                    onSelected: (FDPlan plan) {
+                      comparisonController.updateSelectedFD(1, plan);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Autocomplete<FDPlan>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      final availableFDs = comparisonController.getAvailableFDs(2);
+                      if (textEditingValue.text.isEmpty) {
+                        return availableFDs;
+                      }
+                      return availableFDs.where((plan) => plan.bankName
+                          .toLowerCase()
+                          .contains(textEditingValue.text.toLowerCase()));
+                    },
+                    displayStringForOption: (FDPlan plan) =>
+                    '${plan.bankName} (${plan.interestRate}% | ${plan.tenureMonths} months)',
+                    fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                      return TextFormField(
+                        controller: controller,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          labelText: 'Select FD 3',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.secondaryText),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.secondaryText),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: AppColors.primaryBrand),
+                          ),
+                          floatingLabelStyle: const TextStyle(
+                            color: AppColors.primaryBrand,
+                            fontFamily: 'OpenSans',
+                          ),
+                        ),
+                        onChanged: (value) {
+                          if (value.isEmpty) {
+                            comparisonController.clearSelection(2);
+                          }
+                        },
+                      );
+                    },
+                    onSelected: (FDPlan plan) {
+                      comparisonController.updateSelectedFD(2, plan);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: comparisonController.selectedFDPlans
+                        .where((plan) => plan != null)
+                        .length >= 2
+                        ? () => Get.to(() => FDComparisonScreen(
+                      selectedFDPlans: comparisonController.selectedFDPlans
+                          .where((plan) => plan != null)
+                          .toList()
+                          .cast<FDPlan>(),
+                    ))
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBrand,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Compare FDs',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              )),
+            ),
+            const SizedBox(height: 16),
+            // FD Calculator Card
+            _buildCard(
+              title: 'FD Calculator',
+              content: Column(
+                children: [
+                  const Text(
+                    'Calculate your FD returns with our easy-to-use calculator.',
+                    style: TextStyle(
+                      fontFamily: 'OpenSans',
+                      fontSize: 16,
+                      color: AppColors.secondaryText,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => Get.to(() => const FDCalculatorScreen()),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBrand,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Calculate Returns',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       )),
@@ -930,6 +1149,39 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCard({required String title, required Widget content}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.accentLightGreen, // Changed to light green
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            offset: const Offset(0, 2),
+            blurRadius: 6,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primaryText,
+            ),
+          ),
+          const SizedBox(height: 16),
+          content,
+        ],
       ),
     );
   }

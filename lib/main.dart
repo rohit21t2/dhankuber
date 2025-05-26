@@ -15,7 +15,7 @@ import 'app/controllers/portfolio_controller.dart';
 import 'app/controllers/payments_controller.dart';
 import 'app/controllers/profile_controller.dart';
 import 'app/controllers/goal_based_plans_controller.dart';
-import 'app/controllers/comparison_controller.dart'; // Added import for ComparisonController
+import 'app/controllers/comparison_controller.dart'; // Keep for HomePage usage
 import 'app/controllers/notification_controller.dart'; // Added import for NotificationController
 import 'app/ui/pages/login_page.dart';
 import 'app/ui/pages/otp_page.dart';
@@ -28,7 +28,6 @@ import 'app/ui/pages/trending_plans_page.dart';
 import 'app/ui/pages/goal_based_plans_page.dart';
 import 'app/ui/pages/fd_trial_section_page.dart';
 import 'app/ui/pages/fd_booking_page.dart';
-import 'app/ui/pages/comparison_page.dart';
 import 'app/ui/pages/fd_comparison_screen.dart';
 import 'app/ui/pages/fd_calculator_screen.dart';
 import 'app/ui/pages/portfolio_page.dart';
@@ -225,10 +224,6 @@ class DhankuberApp extends StatelessWidget {
         GetPage(
           name: '/fd_booking',
           page: () => const FDBookingPage(),
-        ),
-        GetPage(
-          name: '/comparison',
-          page: () => const ComparisonPage(),
         ),
         GetPage(
           name: '/fd_comparison',
