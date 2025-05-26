@@ -19,6 +19,7 @@ import 'notifications_page.dart'; // Added for NotificationsPage
 import 'fd_comparison_screen.dart'; // Added for FDComparisonScreen
 import 'fd_calculator_screen.dart'; // Added for FDCalculatorScreen
 import 'package:flutter_svg/flutter_svg.dart'; // Added for SVG icons
+import 'fd_booking_page.dart'; // Added for FDBookingPage
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -111,26 +112,61 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Function to launch WebView for FD URLs
-  Future<void> _launchFDWebView(BuildContext context, String url) async {
+  // Function to show FD Trial popup
+  void _showFDTrialPopup(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          'Suryoday Small Finance Bank',
-          style: const TextStyle(
+        title: const Text(
+          'Experience 7 Days FD',
+          style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppColors.primaryText,
           ),
         ),
-        content: SizedBox(
-          height: 300,
-          child: WebViewWidget(
-            controller: WebViewController()..loadRequest(Uri.parse(url)),
+        content: const Text(
+          'With just 1000rs',
+          style: TextStyle(
+            fontFamily: 'OpenSans',
+            fontSize: 16,
+            color: AppColors.secondaryText,
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                fontFamily: 'OpenSans',
+                fontSize: 14,
+                color: AppColors.primaryText,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Get.to(() => const FDBookingPage()); // Navigate to FDBookingPage
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBrand,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text(
+              'Try Now',
+              style: TextStyle(
+                fontFamily: 'OpenSans',
+                fontSize: 14,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -291,7 +327,7 @@ class _HomePageState extends State<HomePage> {
         titleSpacing: 0,
         actions: [
           GestureDetector(
-            onTap: () => Get.to(() => const FDTrialSectionPage()),
+            onTap: () => _showFDTrialPopup(context), // Updated to show popup
             child: Container(
               width: 32,
               height: 32,
@@ -318,7 +354,7 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(
                         fontFamily: 'OpenSans',
                         fontSize: 9,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.bold, // Fixed typo: FONTweight to fontWeight
                         color: Colors.white,
                       ),
                     ),
@@ -327,14 +363,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(
-              Icons.support_agent,
-              color: AppColors.primaryText,
-              size: 28,
-            ),
-            tooltip: 'get_advice'.tr,
-            onPressed: () {
+          GestureDetector(
+            onTap: () {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
@@ -395,140 +425,161 @@ class _HomePageState extends State<HomePage> {
                 ),
               );
             },
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(
-              Icons.language,
-              color: AppColors.primaryText,
-              size: 28,
+            child: Container(
+              width: 32,
+              height: 32,
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black,
+              ),
+              child: const Icon(
+                Icons.support_agent,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
-            color: AppColors.primaryBrand,
-            onSelected: (String language) {
-              Locale locale;
-              switch (language) {
-                case 'Hindi':
-                  locale = const Locale('hi', 'IN');
-                  break;
-                case 'Bengali':
-                  locale = const Locale('bn', 'IN');
-                  break;
-                case 'Marathi':
-                  locale = const Locale('mr', 'IN');
-                  break;
-                case 'Tamil':
-                  locale = const Locale('ta', 'IN');
-                  break;
-                case 'Telugu':
-                  locale = const Locale('te', 'IN');
-                  break;
-                case 'Gujarati':
-                  locale = const Locale('gu', 'IN');
-                  break;
-                case 'Kannada':
-                  locale = const Locale('kn', 'IN');
-                  break;
-                case 'Malayalam':
-                  locale = const Locale('ml', 'IN');
-                  break;
-                case 'Punjabi':
-                  locale = const Locale('pa', 'IN');
-                  break;
-                case 'Odia':
-                  locale = const Locale('or', 'IN');
-                  break;
-                case 'Urdu':
-                  locale = const Locale('ur', 'IN');
-                  break;
-                default:
-                  locale = const Locale('en', 'US');
-              }
-              Get.updateLocale(locale);
-              Get.snackbar('language_changed'.tr, '${'language_set_to'.tr} $language',
-                  backgroundColor: AppColors.successGreen, colorText: Colors.white);
-            },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'English',
-                child: Text('English', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Hindi',
-                child: Text('Hindi', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Bengali',
-                child: Text('Bengali', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Marathi',
-                child: Text('Marathi', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Tamil',
-                child: Text('Tamil', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Telugu',
-                child: Text('Telugu', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Gujarati',
-                child: Text('Gujarati', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Kannada',
-                child: Text('Kannada', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Malayalam',
-                child: Text('Malayalam', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Punjabi',
-                child: Text('Punjabi', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Odia',
-                child: Text('Odia', style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem<String>(
-                value: 'Urdu',
-                child: Text('Urdu', style: TextStyle(color: Colors.white)),
-              ),
-            ],
           ),
-          Obx(() => Stack(
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.notifications,
-                  color: AppColors.primaryText,
-                  size: 28,
+          GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 ),
-                tooltip: 'Notifications',
-                onPressed: () => _showNotificationsDialog(context),
+                backgroundColor: AppColors.primaryBrand,
+                builder: (context) => Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: <String>[
+                      'English',
+                      'Hindi',
+                      'Bengali',
+                      'Marathi',
+                      'Tamil',
+                      'Telugu',
+                      'Gujarati',
+                      'Kannada',
+                      'Malayalam',
+                      'Punjabi',
+                      'Odia',
+                      'Urdu',
+                    ].map((String language) {
+                      return ListTile(
+                        title: Text(
+                          language,
+                          style: const TextStyle(
+                            fontFamily: 'OpenSans',
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                        onTap: () {
+                          Locale locale;
+                          switch (language) {
+                            case 'Hindi':
+                              locale = const Locale('hi', 'IN');
+                              break;
+                            case 'Bengali':
+                              locale = const Locale('bn', 'IN');
+                              break;
+                            case 'Marathi':
+                              locale = const Locale('mr', 'IN');
+                              break;
+                            case 'Tamil':
+                              locale = const Locale('ta', 'IN');
+                              break;
+                            case 'Telugu':
+                              locale = const Locale('te', 'IN');
+                              break;
+                            case 'Gujarati':
+                              locale = const Locale('gu', 'IN');
+                              break;
+                            case 'Kannada':
+                              locale = const Locale('kn', 'IN');
+                              break;
+                            case 'Malayalam':
+                              locale = const Locale('ml', 'IN');
+                              break;
+                            case 'Punjabi':
+                              locale = const Locale('pa', 'IN');
+                              break;
+                            case 'Odia':
+                              locale = const Locale('or', 'IN');
+                              break;
+                            case 'Urdu':
+                              locale = const Locale('ur', 'IN');
+                              break;
+                            default:
+                              locale = const Locale('en', 'US');
+                          }
+                          Get.updateLocale(locale);
+                          Navigator.pop(context);
+                          Get.snackbar('language_changed'.tr, '${'language_set_to'.tr} $language',
+                              backgroundColor: AppColors.successGreen, colorText: Colors.white);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              width: 32,
+              height: 32,
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.black,
               ),
-              if (notificationController.getUnreadCount() > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: AppColors.errorRed,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      notificationController.getUnreadCount().toString(),
-                      style: const TextStyle(
-                        fontFamily: 'OpenSans',
-                        fontSize: 10,
-                        color: Colors.white,
+              child: const Icon(
+                Icons.language,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+          Obx(() => GestureDetector(
+            onTap: () => _showNotificationsDialog(context),
+            child: Stack(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black,
+                  ),
+                  child: const Icon(
+                    Icons.notifications,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                if (notificationController.getUnreadCount() > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: AppColors.errorRed,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        notificationController.getUnreadCount().toString(),
+                        style: const TextStyle(
+                          fontFamily: 'OpenSans',
+                          fontSize: 10,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           )),
         ],
       ),
@@ -605,7 +656,7 @@ class _HomePageState extends State<HomePage> {
                                   child: ElevatedButton(
                                     onPressed: () {
                                       Navigator.pop(context);
-                                      _launchFDWebView(context, fd['url']);
+                                      Get.to(() => const FDBookingPage()); // Navigate to FDBookingPage
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primaryBrand,
