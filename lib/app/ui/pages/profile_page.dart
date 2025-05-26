@@ -12,6 +12,7 @@ import 'app_settings_page.dart';
 import 'terms_conditions_page.dart';
 import 'user_agreements_page.dart';
 import 'help_customer_service_page.dart';
+import 'about_page.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -114,6 +115,12 @@ class ProfilePage extends StatelessWidget {
                 icon: 'assets/icons/help.svg',
                 title: 'Help/Customer Service',
                 onTap: () => Get.to(() => const HelpCustomerServicePage()),
+              ),
+              _buildOptionTile(
+                context,
+                icon: 'assets/icons/about.svg',
+                title: 'About',
+                onTap: () => Get.to(() => const AboutPage()),
               ),
               _buildOptionTile(
                 context,

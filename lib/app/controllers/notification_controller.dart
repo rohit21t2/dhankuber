@@ -4,11 +4,13 @@ class Notification {
   final String title;
   final String message;
   final DateTime timestamp;
+  final bool isRead; // Added to track read/unread status
 
   Notification({
     required this.title,
     required this.message,
     required this.timestamp,
+    this.isRead = false, // Default to unread
   });
 }
 
@@ -38,9 +40,16 @@ class NotificationController extends GetxController {
     ]);
   }
 
+  // Add fetchNotifications method
+  Future<void> fetchNotifications() async {
+    // Simulate fetching notifications (replace with actual data fetching logic, e.g., Firestore or API)
+    await Future.delayed(const Duration(milliseconds: 100)); // Simulate delay
+    // For now, we already populated notifications in onInit, so no additional action is needed
+    // In a real app, you might fetch from a server here and update notifications
+  }
+
   // Method to get the unread notification count
   int getUnreadCount() {
-    // For now, assume all notifications are unread
-    return notifications.length;
+    return notifications.where((notification) => !notification.isRead).length;
   }
 }

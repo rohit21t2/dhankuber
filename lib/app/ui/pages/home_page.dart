@@ -35,6 +35,9 @@ class _HomePageState extends State<HomePage> {
   late ComparisonController comparisonController; // Added for comparison functionality
   final String fdPlansControllerTag = 'HomePageFDPlansController'; // Unique tag for FDPlansController
   final String trendingControllerTag = 'HomePageTrendingPlansController'; // Unique tag for TrendingPlansController
+  var isDataLoaded = false.obs; // Track data loading state
+  var allFDsPreview = <Map<String, dynamic>>[].obs; // Store preview of All FDs
+  var trendingFDsPreview = <Map<String, dynamic>>[].obs; // Store preview of Trending FDs
 
   @override
   void initState() {
@@ -44,6 +47,27 @@ class _HomePageState extends State<HomePage> {
     trendingPlansController = Get.put(TrendingPlansController(), tag: trendingControllerTag);
     notificationController = Get.put(NotificationController()); // Initialize NotificationController
     comparisonController = Get.put(ComparisonController()); // Initialize ComparisonController
+
+    // Preload data
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      // Fetch the preview data
+      final allFDsFuture = fdPlansController.getAllFDsPreview(3);
+      final trendingFDsFuture = trendingPlansController.getTrendingFDsPreview(3);
+      await Future.wait([
+        allFDsFuture.then((data) => allFDsPreview.assignAll(data)),
+        trendingFDsFuture.then((data) => trendingFDsPreview.assignAll(data)),
+        notificationController.fetchNotifications(),
+      ]);
+      isDataLoaded.value = true;
+    } catch (e) {
+      print('Error loading data: $e');
+      Get.snackbar('Error', 'Failed to load data. Please try again.',
+          backgroundColor: AppColors.errorRed, colorText: Colors.white);
+    }
   }
 
   @override
@@ -58,12 +82,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> _launchWhatsApp() async {
     final String phoneNumber = '+917506154578'; // Added country code explicitly
     final String message = 'Hello, I would like to get advice from experts.';
-    // Use the whatsapp:// scheme to directly open WhatsApp
     final String whatsappUrl = 'whatsapp://send?phone=$phoneNumber&text=${Uri.encodeComponent(message)}';
     final Uri whatsappUri = Uri.parse(whatsappUrl);
 
     try {
-      // Debug: Check if we can launch the WhatsApp URL
       bool canLaunchWhatsapp = await canLaunchUrl(whatsappUri);
       print('Can launch WhatsApp URL ($whatsappUrl): $canLaunchWhatsapp');
 
@@ -74,11 +96,9 @@ class _HomePageState extends State<HomePage> {
         );
         print('WhatsApp launched successfully');
       } else {
-        // Fallback to browser-based WhatsApp link
         final String fallbackUrl = 'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}';
         final Uri fallbackUri = Uri.parse(fallbackUrl);
 
-        // Debug: Check if we can launch the fallback URL
         bool canLaunchFallback = await canLaunchUrl(fallbackUri);
         print('Can launch fallback URL ($fallbackUrl): $canLaunchFallback');
 
@@ -206,7 +226,7 @@ class _HomePageState extends State<HomePage> {
               : ListView.builder(
             itemCount: notificationController.notifications.length > 3
                 ? 3
-                : notificationController.notifications.length, // Show up to 3 notifications
+                : notificationController.notifications.length,
             itemBuilder: (context, index) {
               final notification = notificationController.notifications[index];
               return ListTile(
@@ -295,8 +315,8 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: '', // Removed the "Dhankuber" text
-        leadingWidth: 180, // Increased width to prevent overflow
+        title: '',
+        leadingWidth: 180,
         leading: Padding(
           padding: const EdgeInsets.only(left: 8.0, right: 5.0),
           child: Row(
@@ -308,13 +328,13 @@ class _HomePageState extends State<HomePage> {
                 height: 50,
                 fit: BoxFit.contain,
               ),
-              const SizedBox(width: 8), // Space between logo and text
+              const SizedBox(width: 8),
               Flexible(
                 child: Text(
                   'Dhankuber',
                   style: const TextStyle(
                     fontFamily: 'Poppins',
-                    fontSize: 18, // Reduced font size to prevent overflow
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primaryText,
                   ),
@@ -327,7 +347,7 @@ class _HomePageState extends State<HomePage> {
         titleSpacing: 0,
         actions: [
           GestureDetector(
-            onTap: () => _showFDTrialPopup(context), // Updated to show popup
+            onTap: () => _showFDTrialPopup(context),
             child: Container(
               width: 32,
               height: 32,
@@ -354,7 +374,7 @@ class _HomePageState extends State<HomePage> {
                       style: TextStyle(
                         fontFamily: 'OpenSans',
                         fontSize: 9,
-                        fontWeight: FontWeight.bold, // Fixed typo: FONTweight to fontWeight
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
@@ -540,547 +560,549 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          Obx(() => GestureDetector(
+          GestureDetector(
             onTap: () => _showNotificationsDialog(context),
-            child: Stack(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.black,
-                  ),
-                  child: const Icon(
-                    Icons.notifications,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                if (notificationController.getUnreadCount() > 0)
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: AppColors.errorRed,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        notificationController.getUnreadCount().toString(),
-                        style: const TextStyle(
-                          fontFamily: 'OpenSans',
-                          fontSize: 10,
-                          color: Colors.white,
-                        ),
-                      ),
+            child: Obx(() {
+              final unreadCount = notificationController.getUnreadCount();
+              return Stack(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black,
+                    ),
+                    child: const Icon(
+                      Icons.notifications,
+                      color: Colors.white,
+                      size: 20,
                     ),
                   ),
-              ],
-            ),
-          )),
-        ],
-      ),
-      body: Obx(() => SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'featured_fds'.tr, // "Choose Best FD"
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                fontFamily: 'Poppins',
-                color: AppColors.primaryText,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 100,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: homeController.fixerraFDs.length,
-                itemBuilder: (context, index) {
-                  final fd = homeController.fixerraFDs[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text(
-                              'Suryoday Small Finance Bank',
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryText,
-                              ),
-                            ),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Tenure: 12 Months',
-                                  style: const TextStyle(
-                                    fontFamily: 'OpenSans',
-                                    fontSize: 16,
-                                    color: AppColors.primaryText,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Interest Rate (% p.a.): 9.10%',
-                                  style: const TextStyle(
-                                    fontFamily: 'OpenSans',
-                                    fontSize: 16,
-                                    color: AppColors.primaryText,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Issuer Type: Bank',
-                                  style: const TextStyle(
-                                    fontFamily: 'OpenSans',
-                                    fontSize: 16,
-                                    color: AppColors.primaryText,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Center(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      Get.to(() => const FDBookingPage()); // Navigate to FDBookingPage
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primaryBrand,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Open FD',
-                                      style: const TextStyle(
-                                        fontFamily: 'OpenSans',
-                                        fontSize: 14,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            backgroundColor: AppColors.neutralLightGray,
-                          ),
-                        );
-                      },
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.primaryBrand, width: 2),
-                              image: const DecorationImage(
-                                image: AssetImage('assets/images/logo.png'),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          SizedBox(
-                            width: 70,
-                            child: Text(
-                              fd['title'],
-                              style: const TextStyle(
-                                fontFamily: 'OpenSans',
-                                fontSize: 12,
-                                color: AppColors.primaryText,
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Trending FDs (First Position)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'trending_fds'.tr,
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    fontFamily: 'Poppins',
-                    color: AppColors.primaryText,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => Get.toNamed('/trending_plans'), // Use named route
-                  child: Text(
-                    'view_all'.tr,
-                    style: const TextStyle(
-                      fontFamily: 'OpenSans',
-                      color: AppColors.primaryBrand,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 200,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: trendingPlansController.getTrendingFDsPreview(3).length, // Show 3 FDs as a preview
-                itemBuilder: (context, index) {
-                  final fd = trendingPlansController.getTrendingFDsPreview(3)[index];
-                  return _buildFDCard(fd, () {
-                    Get.to(() => FDDetailsPage(goal: {
-                      'goalName': fd['bank'],
-                      'expectedReturn': fd['interestRate'],
-                      'tenure': fd['plan'],
-                      'taxSaving': fd['taxSaving'],
-                    }));
-                  }, 'trending');
-                },
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // All FDs (Second Position)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'all_fds'.tr,
-                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                    fontFamily: 'Poppins',
-                    color: AppColors.primaryText,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => Get.to(() => const AllFDPlansPage()),
-                  child: Text(
-                    'view_all'.tr,
-                    style: const TextStyle(
-                      fontFamily: 'OpenSans',
-                      color: AppColors.primaryBrand,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 200,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: fdPlansController.getAllFDsPreview(3).length, // Show 3 FDs as a preview
-                itemBuilder: (context, index) {
-                  final fd = fdPlansController.getAllFDsPreview(3)[index];
-                  return _buildFDCard(fd, () {
-                    Get.to(() => FDDetailsPage(goal: {
-                      'goalName': fd['bank'],
-                      'expectedReturn': fd['interestRate'],
-                      'tenure': fd['plan'],
-                      'taxSaving': fd['taxSaving'],
-                    }));
-                  }, 'all');
-                },
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Goal-Based FDs (Third Position) - Single Card
-            GestureDetector(
-              onTap: () => Get.to(() => const GoalBasedPlansPage()),
-              child: Container(
-                width: double.infinity,
-                height: 120,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2E7D32), // Solid dark green color
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      offset: const Offset(0, 4),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '🎯 Plan Your Goals with Smart FDs',
-                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                        fontFamily: 'Poppins',
-                        color: Colors.white,
-                        fontSize: 20,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () => Get.to(() => const GoalBasedPlansPage()),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryBrand,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.errorRed,
+                          shape: BoxShape.circle,
                         ),
                         child: Text(
-                          'View All Goals'.tr,
+                          unreadCount.toString(),
                           style: const TextStyle(
                             fontFamily: 'OpenSans',
-                            fontSize: 12,
-                            color: Colors.black,
+                            fontSize: 10,
+                            color: Colors.white,
                           ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            }),
+          ),
+        ],
+      ),
+      body: Obx(() {
+        if (!isDataLoaded.value) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: AppColors.primaryBrand,
+            ),
+          );
+        }
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'featured_fds'.tr,
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                  fontFamily: 'Poppins',
+                  color: AppColors.primaryText,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 100,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: homeController.fixerraFDs.length,
+                  itemBuilder: (context, index) {
+                    final fd = homeController.fixerraFDs[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text(
+                                'Suryoday Small Finance Bank',
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryText,
+                                ),
+                              ),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Tenure: 12 Months',
+                                    style: const TextStyle(
+                                      fontFamily: 'OpenSans',
+                                      fontSize: 16,
+                                      color: AppColors.primaryText,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Interest Rate (% p.a.): 9.10%',
+                                    style: const TextStyle(
+                                      fontFamily: 'OpenSans',
+                                      fontSize: 16,
+                                      color: AppColors.primaryText,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Issuer Type: Bank',
+                                    style: const TextStyle(
+                                      fontFamily: 'OpenSans',
+                                      fontSize: 16,
+                                      color: AppColors.primaryText,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Center(
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        Get.to(() => const FDBookingPage());
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primaryBrand,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Open FD',
+                                        style: const TextStyle(
+                                          fontFamily: 'OpenSans',
+                                          fontSize: 14,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              backgroundColor: AppColors.neutralLightGray,
+                            ),
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 70,
+                              height: 70,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppColors.primaryBrand, width: 2),
+                                image: const DecorationImage(
+                                  image: AssetImage('assets/images/logo.png'),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            SizedBox(
+                              width: 70,
+                              child: Text(
+                                fd['title'],
+                                style: const TextStyle(
+                                  fontFamily: 'OpenSans',
+                                  fontSize: 12,
+                                  color: AppColors.primaryText,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'trending_fds'.tr,
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontFamily: 'Poppins',
+                      color: AppColors.primaryText,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Get.toNamed('/trending_plans'),
+                    child: Text(
+                      'view_all'.tr,
+                      style: const TextStyle(
+                        fontFamily: 'OpenSans',
+                        color: AppColors.primaryBrand,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: trendingFDsPreview.length,
+                  itemBuilder: (context, index) {
+                    final fd = trendingFDsPreview[index];
+                    return _buildFDCard(fd, () {
+                      Get.to(() => FDDetailsPage(goal: {
+                        'goalName': fd['bank'],
+                        'expectedReturn': fd['interestRate'],
+                        'tenure': fd['plan'],
+                        'taxSaving': fd['taxSaving'],
+                      }));
+                    }, 'trending');
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'all_fds'.tr,
+                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontFamily: 'Poppins',
+                      color: AppColors.primaryText,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Get.to(() => const AllFDPlansPage()),
+                    child: Text(
+                      'view_all'.tr,
+                      style: const TextStyle(
+                        fontFamily: 'OpenSans',
+                        color: AppColors.primaryBrand,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: allFDsPreview.length,
+                  itemBuilder: (context, index) {
+                    final fd = allFDsPreview[index];
+                    return _buildFDCard(fd, () {
+                      Get.to(() => FDDetailsPage(goal: {
+                        'goalName': fd['bank'],
+                        'expectedReturn': fd['interestRate'],
+                        'tenure': fd['plan'],
+                        'taxSaving': fd['taxSaving'],
+                      }));
+                    }, 'all');
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+              GestureDetector(
+                onTap: () => Get.to(() => const GoalBasedPlansPage()),
+                child: Container(
+                  width: double.infinity,
+                  height: 120,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E7D32),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        offset: const Offset(0, 4),
+                        blurRadius: 8,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '🎯 Plan Your Goals with Smart FDs',
+                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                          fontFamily: 'Poppins',
+                          color: Colors.white,
+                          fontSize: 20,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () => Get.to(() => const GoalBasedPlansPage()),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryBrand,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          ),
+                          child: Text(
+                            'View All Goals'.tr,
+                            style: const TextStyle(
+                              fontFamily: 'OpenSans',
+                              fontSize: 12,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildCard(
+                title: 'Compare Fixed Deposits',
+                content: Obx(() => Column(
+                  children: [
+                    Autocomplete<FDPlan>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        final availableFDs = comparisonController.getAvailableFDs(0);
+                        if (textEditingValue.text.isEmpty) {
+                          return availableFDs;
+                        }
+                        return availableFDs.where((plan) => plan.bankName
+                            .toLowerCase()
+                            .contains(textEditingValue.text.toLowerCase()));
+                      },
+                      displayStringForOption: (FDPlan plan) =>
+                      '${plan.bankName} (${plan.interestRate}% | ${plan.tenureMonths} months)',
+                      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                        return TextFormField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          decoration: InputDecoration(
+                            labelText: 'Select FD 1',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.secondaryText),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.secondaryText),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.primaryBrand),
+                            ),
+                            floatingLabelStyle: const TextStyle(
+                              color: AppColors.primaryBrand,
+                              fontFamily: 'OpenSans',
+                            ),
+                          ),
+                          onChanged: (value) {
+                            if (value.isEmpty) {
+                              comparisonController.clearSelection(0);
+                            }
+                          },
+                        );
+                      },
+                      onSelected: (FDPlan plan) {
+                        comparisonController.updateSelectedFD(0, plan);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Autocomplete<FDPlan>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        final availableFDs = comparisonController.getAvailableFDs(1);
+                        if (textEditingValue.text.isEmpty) {
+                          return availableFDs;
+                        }
+                        return availableFDs.where((plan) => plan.bankName
+                            .toLowerCase()
+                            .contains(textEditingValue.text.toLowerCase()));
+                      },
+                      displayStringForOption: (FDPlan plan) =>
+                      '${plan.bankName} (${plan.interestRate}% | ${plan.tenureMonths} months)',
+                      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                        return TextFormField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          decoration: InputDecoration(
+                            labelText: 'Select FD 2',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.secondaryText),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.secondaryText),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.primaryBrand),
+                            ),
+                            floatingLabelStyle: const TextStyle(
+                              color: AppColors.primaryBrand,
+                              fontFamily: 'OpenSans',
+                            ),
+                          ),
+                          onChanged: (value) {
+                            if (value.isEmpty) {
+                              comparisonController.clearSelection(1);
+                            }
+                          },
+                        );
+                      },
+                      onSelected: (FDPlan plan) {
+                        comparisonController.updateSelectedFD(1, plan);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Autocomplete<FDPlan>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        final availableFDs = comparisonController.getAvailableFDs(2);
+                        if (textEditingValue.text.isEmpty) {
+                          return availableFDs;
+                        }
+                        return availableFDs.where((plan) => plan.bankName
+                            .toLowerCase()
+                            .contains(textEditingValue.text.toLowerCase()));
+                      },
+                      displayStringForOption: (FDPlan plan) =>
+                      '${plan.bankName} (${plan.interestRate}% | ${plan.tenureMonths} months)',
+                      fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                        return TextFormField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          decoration: InputDecoration(
+                            labelText: 'Select FD 3',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.secondaryText),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.secondaryText),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: AppColors.primaryBrand),
+                            ),
+                            floatingLabelStyle: const TextStyle(
+                              color: AppColors.primaryBrand,
+                              fontFamily: 'OpenSans',
+                            ),
+                          ),
+                          onChanged: (value) {
+                            if (value.isEmpty) {
+                              comparisonController.clearSelection(2);
+                            }
+                          },
+                        );
+                      },
+                      onSelected: (FDPlan plan) {
+                        comparisonController.updateSelectedFD(2, plan);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: comparisonController.selectedFDPlans
+                          .where((plan) => plan != null)
+                          .length >= 2
+                          ? () => Get.to(() => FDComparisonScreen(
+                        selectedFDPlans: comparisonController.selectedFDPlans
+                            .where((plan) => plan != null)
+                            .toList()
+                            .cast<FDPlan>(),
+                      ))
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryBrand,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Compare FDs',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                title: 'FD Calculator',
+                content: Column(
+                  children: [
+                    const Text(
+                      'Calculate your FD returns with our easy-to-use calculator.',
+                      style: TextStyle(
+                        fontFamily: 'OpenSans',
+                        fontSize: 16,
+                        color: AppColors.secondaryText,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => Get.to(() => const FDCalculatorScreen()),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryBrand,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Calculate Returns',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-
-            // Comparison Section (Moved from ComparisonPage)
-            // FD Comparison Card
-            _buildCard(
-              title: 'Compare Fixed Deposits',
-              content: Obx(() => Column(
-                children: [
-                  Autocomplete<FDPlan>(
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      final availableFDs = comparisonController.getAvailableFDs(0);
-                      if (textEditingValue.text.isEmpty) {
-                        return availableFDs;
-                      }
-                      return availableFDs.where((plan) => plan.bankName
-                          .toLowerCase()
-                          .contains(textEditingValue.text.toLowerCase()));
-                    },
-                    displayStringForOption: (FDPlan plan) =>
-                    '${plan.bankName} (${plan.interestRate}% | ${plan.tenureMonths} months)',
-                    fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                      return TextFormField(
-                        controller: controller,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          labelText: 'Select FD 1',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.secondaryText),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.secondaryText),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.primaryBrand),
-                          ),
-                          floatingLabelStyle: const TextStyle(
-                            color: AppColors.primaryBrand,
-                            fontFamily: 'OpenSans',
-                          ),
-                        ),
-                        onChanged: (value) {
-                          if (value.isEmpty) {
-                            comparisonController.clearSelection(0);
-                          }
-                        },
-                      );
-                    },
-                    onSelected: (FDPlan plan) {
-                      comparisonController.updateSelectedFD(0, plan);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Autocomplete<FDPlan>(
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      final availableFDs = comparisonController.getAvailableFDs(1);
-                      if (textEditingValue.text.isEmpty) {
-                        return availableFDs;
-                      }
-                      return availableFDs.where((plan) => plan.bankName
-                          .toLowerCase()
-                          .contains(textEditingValue.text.toLowerCase()));
-                    },
-                    displayStringForOption: (FDPlan plan) =>
-                    '${plan.bankName} (${plan.interestRate}% | ${plan.tenureMonths} months)',
-                    fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                      return TextFormField(
-                        controller: controller,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          labelText: 'Select FD 2',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.secondaryText),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.secondaryText),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.primaryBrand),
-                          ),
-                          floatingLabelStyle: const TextStyle(
-                            color: AppColors.primaryBrand,
-                            fontFamily: 'OpenSans',
-                          ),
-                        ),
-                        onChanged: (value) {
-                          if (value.isEmpty) {
-                            comparisonController.clearSelection(1);
-                          }
-                        },
-                      );
-                    },
-                    onSelected: (FDPlan plan) {
-                      comparisonController.updateSelectedFD(1, plan);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Autocomplete<FDPlan>(
-                    optionsBuilder: (TextEditingValue textEditingValue) {
-                      final availableFDs = comparisonController.getAvailableFDs(2);
-                      if (textEditingValue.text.isEmpty) {
-                        return availableFDs;
-                      }
-                      return availableFDs.where((plan) => plan.bankName
-                          .toLowerCase()
-                          .contains(textEditingValue.text.toLowerCase()));
-                    },
-                    displayStringForOption: (FDPlan plan) =>
-                    '${plan.bankName} (${plan.interestRate}% | ${plan.tenureMonths} months)',
-                    fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                      return TextFormField(
-                        controller: controller,
-                        focusNode: focusNode,
-                        decoration: InputDecoration(
-                          labelText: 'Select FD 3',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.secondaryText),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.secondaryText),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.primaryBrand),
-                          ),
-                          floatingLabelStyle: const TextStyle(
-                            color: AppColors.primaryBrand,
-                            fontFamily: 'OpenSans',
-                          ),
-                        ),
-                        onChanged: (value) {
-                          if (value.isEmpty) {
-                            comparisonController.clearSelection(2);
-                          }
-                        },
-                      );
-                    },
-                    onSelected: (FDPlan plan) {
-                      comparisonController.updateSelectedFD(2, plan);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: comparisonController.selectedFDPlans
-                        .where((plan) => plan != null)
-                        .length >= 2
-                        ? () => Get.to(() => FDComparisonScreen(
-                      selectedFDPlans: comparisonController.selectedFDPlans
-                          .where((plan) => plan != null)
-                          .toList()
-                          .cast<FDPlan>(),
-                    ))
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBrand,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Compare FDs',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              )),
-            ),
-            const SizedBox(height: 16),
-            // FD Calculator Card
-            _buildCard(
-              title: 'FD Calculator',
-              content: Column(
-                children: [
-                  const Text(
-                    'Calculate your FD returns with our easy-to-use calculator.',
-                    style: TextStyle(
-                      fontFamily: 'OpenSans',
-                      fontSize: 16,
-                      color: AppColors.secondaryText,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => Get.to(() => const FDCalculatorScreen()),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryBrand,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Calculate Returns',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      )),
+            ],
+          ),
+        );
+      }),
     );
   }
 
@@ -1088,7 +1110,7 @@ class _HomePageState extends State<HomePage> {
     Decoration backgroundDecoration;
     if (section == 'trending') {
       backgroundDecoration = BoxDecoration(
-        color: AppColors.primaryBrand, // Orange color matching All FDs
+        color: AppColors.primaryBrand,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -1100,7 +1122,7 @@ class _HomePageState extends State<HomePage> {
       );
     } else if (section == 'goalBased') {
       backgroundDecoration = BoxDecoration(
-        color: const Color(0xFF2E7D32), // Solid dark green color
+        color: const Color(0xFF2E7D32),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -1208,7 +1230,7 @@ class _HomePageState extends State<HomePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.accentLightGreen, // Changed to light green
+        color: AppColors.accentLightGreen,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(

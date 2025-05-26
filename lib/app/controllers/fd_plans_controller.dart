@@ -93,7 +93,7 @@ class FDPlansController extends GetxController {
   String _getFormattedTime() {
     final now = DateTime.now();
     final formatter = DateFormat('hh:mm a z, MMMM dd, yyyy');
-    return formatter.format(now); // e.g., 10:58 PM IST, May 25, 2025
+    return formatter.format(now); // e.g., 06:54 PM IST, May 26, 2025
   }
 
   @override
@@ -112,7 +112,9 @@ class FDPlansController extends GetxController {
   }
 
   // Method to provide a preview of allFDs for HomePage
-  List<Map<String, dynamic>> getAllFDsPreview(int count) {
+  Future<List<Map<String, dynamic>>> getAllFDsPreview(int count) async {
+    // Simulate an async operation (e.g., fetching from a database or API)
+    await Future.delayed(const Duration(milliseconds: 100)); // Simulate delay
     return allFDs.take(count).toList();
   }
 

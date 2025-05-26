@@ -145,9 +145,8 @@ class _OTPPageState extends State<OTPPage> {
                                   _focusNodes[index + 1].requestFocus();
                                 } else {
                                   _focusNodes[index].unfocus();
-                                  // Auto-process OTP when the 6th digit is entered
                                   if (_isOtpComplete()) {
-                                    print('Auto-processing OTP at 09:57 PM IST, May 24, 2025');
+                                    print('Auto-processing OTP at 08:42 PM IST, May 26, 2025');
                                     controller.verifyOTP();
                                   }
                                 }
@@ -171,9 +170,9 @@ class _OTPPageState extends State<OTPPage> {
                   TextButton(
                     onPressed: controller.canResendOTP.value
                         ? () {
-                      print('Resend OTP clicked at 09:57 PM IST, May 24, 2025');
+                      print('Resend OTP clicked at 08:42 PM IST, May 26, 2025');
                       controller.sendOTP();
-                      _startCountdown(); // Restart the countdown
+                      _startCountdown();
                     }
                         : null,
                     child: Text(
@@ -189,7 +188,7 @@ class _OTPPageState extends State<OTPPage> {
                   CustomButton(
                     text: 'Verify OTP',
                     onPressed: () {
-                      print('Verify OTP clicked at 09:57 PM IST, May 24, 2025');
+                      print('Verify OTP clicked at 08:42 PM IST, May 26, 2025');
                       controller.verifyOTP();
                     },
                   ),

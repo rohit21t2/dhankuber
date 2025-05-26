@@ -1,22 +1,22 @@
-import 'dart:io' show Platform; // For platform checks
+import 'dart:io' show Platform;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart'; // Added for kDebugMode
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Fixed import
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:intl/intl.dart'; // Import intl for date formatting
-import 'package:webview_flutter/webview_flutter.dart'; // Import for WebView platform setup
-import 'package:webview_flutter_android/webview_flutter_android.dart'; // Android-specific WebView
+import 'package:intl/intl.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'app/controllers/auth_controller.dart';
 import 'app/controllers/home_controller.dart';
 import 'app/controllers/fd_plans_controller.dart';
 import 'app/controllers/portfolio_controller.dart';
 import 'app/controllers/payments_controller.dart';
-import 'app/controllers/profile_controller.dart';
 import 'app/controllers/goal_based_plans_controller.dart';
-import 'app/controllers/comparison_controller.dart'; // Keep for HomePage usage
-import 'app/controllers/notification_controller.dart'; // Added import for NotificationController
+import 'app/controllers/comparison_controller.dart';
+import 'app/controllers/notification_controller.dart';
 import 'app/ui/pages/login_page.dart';
 import 'app/ui/pages/otp_page.dart';
 import 'app/ui/pages/name_input_page.dart';
@@ -39,22 +39,23 @@ import 'app/ui/pages/app_settings_page.dart';
 import 'app/ui/pages/terms_conditions_page.dart';
 import 'app/ui/pages/user_agreements_page.dart';
 import 'app/ui/pages/help_customer_service_page.dart';
+import 'app/ui/pages/about_page.dart';
 import 'app/ui/pages/splash_screen.dart';
-import 'app/ui/pages/notifications_page.dart'; // Added import for NotificationsPage
+import 'app/ui/pages/notifications_page.dart';
 import 'app/utils/colors.dart';
-import 'app/utils/translations.dart'; // Ensure this import is correct
+import 'app/utils/translations.dart';
 import 'firebase_options.dart';
 import 'app/binding/main_screen_binding.dart';
 import 'app/binding/portfolio_binding.dart';
 import 'app/binding/payments_binding.dart';
 import 'app/binding/profile_binding.dart';
-import 'app/ui/pages/fd_details_page.dart'; // Added import
+import 'app/ui/pages/fd_details_page.dart';
 
 // Utility function to format the current time
 String getFormattedTime() {
   final now = DateTime.now();
   final formatter = DateFormat('hh:mm a z, MMMM dd, yyyy');
-  return formatter.format(now); // e.g., 11:16 AM IST, May 26, 2025
+  return formatter.format(now);
 }
 
 void main() async {
@@ -62,8 +63,16 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Enable Firestore offline persistence
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+
   if (kDebugMode) {
     print('Firebase initialized at ${getFormattedTime()}');
+    print('Firestore offline persistence enabled');
     print('Firebase Auth session persistence is handled automatically on Android');
   }
 
@@ -72,18 +81,15 @@ void main() async {
     WebViewPlatform.instance = AndroidWebViewPlatform();
   }
 
-  // Initialize only the AuthController in main.dart
+  // Initialize controllers (excluding ProfileController, handled by ProfileBinding)
   Get.put(AuthController());
-
-  // Lazily initialize other controllers to avoid heavy initialization at startup
-  Get.lazyPut(() => HomeController());
-  Get.lazyPut(() => FDPlansController());
-  Get.lazyPut(() => PortfolioController());
-  Get.lazyPut(() => PaymentsController());
-  Get.lazyPut(() => ProfileController());
-  Get.lazyPut(() => GoalBasedPlansController());
-  Get.lazyPut(() => ComparisonController());
-  Get.lazyPut(() => NotificationController()); // Added NotificationController
+  Get.put(HomeController());
+  Get.put(FDPlansController());
+  Get.put(PortfolioController());
+  Get.put(PaymentsController());
+  Get.put(GoalBasedPlansController());
+  Get.put(ComparisonController());
+  Get.put(NotificationController());
 
   runApp(const DhankuberApp());
 }
@@ -93,7 +99,6 @@ class DhankuberApp extends StatelessWidget {
 
   Future<String> _getInitialRoute() async {
     final FirebaseAuth auth = FirebaseAuth.instance;
-
     final FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
     if (kDebugMode) {
@@ -107,6 +112,30 @@ class DhankuberApp extends StatelessWidget {
         print('No signed-in user, redirecting to LoginPage');
       }
       return '/login';
+    }
+
+    // Check if user exists in Firestore
+    String? phone = auth.currentUser?.phoneNumber;
+    bool userExists = false;
+    if (phone != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(phone)
+            .get();
+        userExists = userDoc.exists;
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error checking user existence: $e at ${getFormattedTime()}');
+        }
+      }
+    }
+
+    if (!userExists) {
+      if (kDebugMode) {
+        print('New user, redirecting to NameInputPage');
+      }
+      return '/name';
     }
 
     // Check security settings
@@ -211,7 +240,7 @@ class DhankuberApp extends StatelessWidget {
         ),
         GetPage(
           name: '/trending_plans',
-          page: () => TrendingPlansPage(), // Removed const since it's stateful
+          page: () => TrendingPlansPage(),
         ),
         GetPage(
           name: '/goal_based_plans',
@@ -227,7 +256,7 @@ class DhankuberApp extends StatelessWidget {
         ),
         GetPage(
           name: '/fd_comparison',
-          page: () => const FDComparisonScreen(selectedFDPlans: []), // Added default empty list
+          page: () => const FDComparisonScreen(selectedFDPlans: []),
         ),
         GetPage(
           name: '/fd_calculator',
@@ -273,8 +302,12 @@ class DhankuberApp extends StatelessWidget {
           page: () => const HelpCustomerServicePage(),
         ),
         GetPage(
+          name: '/about',
+          page: () => const AboutPage(),
+        ),
+        GetPage(
           name: '/notifications',
-          page: () => const NotificationsPage(), // Added route for NotificationsPage
+          page: () => const NotificationsPage(),
         ),
         GetPage(
           name: '/fd_details',

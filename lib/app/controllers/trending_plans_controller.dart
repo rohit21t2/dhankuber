@@ -63,7 +63,9 @@ class TrendingPlansController extends GetxController {
   }
 
   // Get a preview of trending FDs for HomePage
-  List<Map<String, dynamic>> getTrendingFDsPreview(int count) {
+  Future<List<Map<String, dynamic>>> getTrendingFDsPreview(int count) async {
+    // Simulate an async operation (e.g., fetching from a database or API)
+    await Future.delayed(const Duration(milliseconds: 100)); // Simulate delay
     return filteredTrendingFDs.take(count).toList();
   }
 

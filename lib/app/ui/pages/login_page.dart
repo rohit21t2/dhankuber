@@ -82,7 +82,7 @@ class LoginPage extends StatelessWidget {
                   CustomButton(
                     text: 'Send OTP',
                     onPressed: () {
-                      print('Send OTP button clicked at 03:55 PM IST, May 24, 2025');
+                      print('Send OTP button clicked at 08:49 PM IST, May 26, 2025');
                       controller.sendOTP();
                     },
                   ),

@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart'; // Added for kDebugMode
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:intl/intl.dart'; // Added for date formatting
+import 'package:intl/intl.dart';
 import '../utils/colors.dart';
 import '../controllers/auth_controller.dart';
 
@@ -15,6 +15,7 @@ class ProfileController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  final AuthController _authController = Get.find<AuthController>();
 
   // Utility function to format the current time
   String _getFormattedTime() {
@@ -29,7 +30,23 @@ class ProfileController extends GetxController {
     if (kDebugMode) {
       print('ProfileController initialized at ${_getFormattedTime()}');
     }
-    fetchProfile();
+    // Wait for AuthController to finish initializing
+    ever(_authController.isLoggedIn, (bool isLoggedIn) {
+      if (isLoggedIn) {
+        if (kDebugMode) {
+          print('AuthController confirmed user is logged in, fetching profile at ${_getFormattedTime()}');
+        }
+        fetchProfile();
+      } else {
+        if (kDebugMode) {
+          print('User not logged in, skipping profile fetch at ${_getFormattedTime()}');
+        }
+      }
+    });
+    // Initial check in case isLoggedIn is already true
+    if (_authController.isLoggedIn.value) {
+      fetchProfile();
+    }
   }
 
   Future<void> fetchProfile() async {
