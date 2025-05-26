@@ -19,6 +19,7 @@ class _FDCalculatorScreenState extends State<FDCalculatorScreen> {
   String _compounding = 'Quarterly';
   double? _maturityAmount;
   double? _interestEarned;
+  double? _principalAmount;
 
   void _calculateFD() {
     if (_formKey.currentState!.validate()) {
@@ -37,6 +38,7 @@ class _FDCalculatorScreenState extends State<FDCalculatorScreen> {
       final interest = maturity - principal;
 
       setState(() {
+        _principalAmount = principal;
         _maturityAmount = maturity;
         _interestEarned = interest;
       });
@@ -66,8 +68,25 @@ class _FDCalculatorScreenState extends State<FDCalculatorScreen> {
                 controller: _principalController,
                 decoration: InputDecoration(
                   labelText: 'Principal Amount (₹)',
+                  labelStyle: const TextStyle(
+                    color: AppColors.primaryText, // Label color black
+                    fontFamily: 'OpenSans',
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  floatingLabelStyle: const TextStyle(
+                    color: AppColors.primaryBrand, // Floating label orange
+                    fontFamily: 'OpenSans',
                   ),
                 ),
                 keyboardType: TextInputType.number,
@@ -86,8 +105,25 @@ class _FDCalculatorScreenState extends State<FDCalculatorScreen> {
                 controller: _tenureController,
                 decoration: InputDecoration(
                   labelText: 'Tenure (Months)',
+                  labelStyle: const TextStyle(
+                    color: AppColors.primaryText, // Label color black
+                    fontFamily: 'OpenSans',
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  floatingLabelStyle: const TextStyle(
+                    color: AppColors.primaryBrand, // Floating label orange
+                    fontFamily: 'OpenSans',
                   ),
                 ),
                 keyboardType: TextInputType.number,
@@ -106,8 +142,25 @@ class _FDCalculatorScreenState extends State<FDCalculatorScreen> {
                 controller: _interestRateController,
                 decoration: InputDecoration(
                   labelText: 'Interest Rate (% p.a.)',
+                  labelStyle: const TextStyle(
+                    color: AppColors.primaryText, // Label color black
+                    fontFamily: 'OpenSans',
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  floatingLabelStyle: const TextStyle(
+                    color: AppColors.primaryBrand, // Floating label orange
+                    fontFamily: 'OpenSans',
                   ),
                 ),
                 keyboardType: TextInputType.number,
@@ -126,8 +179,25 @@ class _FDCalculatorScreenState extends State<FDCalculatorScreen> {
                 value: _compounding,
                 decoration: InputDecoration(
                   labelText: 'Compounding Frequency',
+                  labelStyle: const TextStyle(
+                    color: AppColors.primaryText, // Label color black
+                    fontFamily: 'OpenSans',
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryBrand), // Border orange
+                  ),
+                  floatingLabelStyle: const TextStyle(
+                    color: AppColors.primaryBrand, // Floating label orange
+                    fontFamily: 'OpenSans',
                   ),
                 ),
                 items: ['Monthly', 'Quarterly', 'Annually']
@@ -161,40 +231,104 @@ class _FDCalculatorScreenState extends State<FDCalculatorScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (_maturityAmount != null && _interestEarned != null)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.neutralLightGray,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Maturity Amount: ₹${_maturityAmount!.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontFamily: 'OpenSans',
-                          fontSize: 16,
-                          color: AppColors.primaryText,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Interest Earned: ₹${_interestEarned!.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontFamily: 'OpenSans',
-                          fontSize: 16,
-                          color: AppColors.primaryText,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              if (_maturityAmount != null && _interestEarned != null && _principalAmount != null)
+                _buildResultsTable(context),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildResultsTable(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Calculation Results',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primaryText,
+          ),
+        ),
+        const SizedBox(height: 16),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.accentLightGreen,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: DataTable(
+              columnSpacing: 16,
+              border: TableBorder(
+                horizontalInside: BorderSide(color: Colors.white, width: 1),
+                verticalInside: BorderSide(color: Colors.white, width: 1),
+                top: BorderSide(color: Colors.white, width: 1),
+                bottom: BorderSide(color: Colors.white, width: 1),
+                left: BorderSide(color: Colors.white, width: 1),
+                right: BorderSide(color: Colors.white, width: 1),
+              ),
+              columns: [
+                DataColumn(
+                  label: Text(
+                    'Details',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryText, // Changed to black
+                    ),
+                  ),
+                ),
+                const DataColumn(
+                  label: Text(
+                    'Amount',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryText,
+                    ),
+                  ),
+                ),
+              ],
+              rows: [
+                DataRow(cells: [
+                  const DataCell(Text(
+                    'Principal Amount',
+                    style: TextStyle(fontFamily: 'OpenSans', color: AppColors.secondaryText),
+                  )),
+                  DataCell(Text(
+                    '₹${_principalAmount!.toStringAsFixed(2)}',
+                    style: const TextStyle(fontFamily: 'OpenSans', color: AppColors.secondaryText),
+                  )),
+                ]),
+                DataRow(cells: [
+                  const DataCell(Text(
+                    'Interest Earned',
+                    style: TextStyle(fontFamily: 'OpenSans', color: AppColors.secondaryText),
+                  )),
+                  DataCell(Text(
+                    '₹${_interestEarned!.toStringAsFixed(2)}',
+                    style: const TextStyle(fontFamily: 'OpenSans', color: AppColors.secondaryText),
+                  )),
+                ]),
+                DataRow(cells: [
+                  const DataCell(Text(
+                    'Maturity Amount',
+                    style: TextStyle(fontFamily: 'OpenSans', color: AppColors.secondaryText),
+                  )),
+                  DataCell(Text(
+                    '₹${_maturityAmount!.toStringAsFixed(2)}',
+                    style: const TextStyle(fontFamily: 'OpenSans', color: AppColors.secondaryText),
+                  )),
+                ]),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

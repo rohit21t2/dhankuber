@@ -1,64 +1,109 @@
+import 'package:flutter/foundation.dart'; // Added for kDebugMode
 import 'package:get/get.dart';
+import 'package:intl/intl.dart'; // Added for date formatting
 
 class FDPlan {
   final String bankName;
   final double interestRate;
   final int tenureMonths;
-  final int lockInMonths;
-  final double rating;
-  final int minInvestment;
-  final String goal;
+  final String issuerType; // Added issuerType
+  final bool isTaxSaving; // Added isTaxSaving
 
   FDPlan({
     required this.bankName,
     required this.interestRate,
     required this.tenureMonths,
-    required this.lockInMonths,
-    required this.rating,
-    required this.minInvestment,
-    required this.goal,
+    required this.issuerType,
+    required this.isTaxSaving,
   });
 }
 
 class ComparisonController extends GetxController {
-  var isLoading = false.obs;
-  var allFDPlans = <FDPlan>[].obs; // Reactive list of FD plans
-  var selectedFDPlans = List<FDPlan?>.filled(3, null).obs; // Reactive list for selected FDs
+  var fdPlans = <FDPlan>[].obs;
+  var selectedFDPlans = List<FDPlan?>.filled(3, null).obs; // For 3 FD slots
+
+  // Utility function to format the current time
+  String _getFormattedTime() {
+    final now = DateTime.now();
+    final formatter = DateFormat('hh:mm a \'IST\', MMMM dd, yyyy');
+    return formatter.format(now);
+  }
 
   @override
   void onInit() {
     super.onInit();
-    // Initialize the FD plans data
-    allFDPlans.addAll([
-      FDPlan(bankName: 'SBI', interestRate: 6.5, tenureMonths: 36, lockInMonths: 36, rating: 4.5, minInvestment: 10000, goal: 'Retirement'),
-      FDPlan(bankName: 'HDFC', interestRate: 7.0, tenureMonths: 24, lockInMonths: 24, rating: 4.0, minInvestment: 5000, goal: 'Emergency Fund'),
-      FDPlan(bankName: 'ICICI', interestRate: 6.8, tenureMonths: 12, lockInMonths: 12, rating: 4.2, minInvestment: 10000, goal: 'Short-Term'),
-      FDPlan(bankName: 'Axis', interestRate: 7.2, tenureMonths: 48, lockInMonths: 48, rating: 4.3, minInvestment: 15000, goal: 'Retirement'),
-      FDPlan(bankName: 'Bajaj Finance', interestRate: 8.0, tenureMonths: 36, lockInMonths: 36, rating: 4.8, minInvestment: 25000, goal: 'Retirement'),
-      FDPlan(bankName: 'Shriram Finance', interestRate: 8.5, tenureMonths: 60, lockInMonths: 60, rating: 4.7, minInvestment: 20000, goal: 'Retirement'),
-      FDPlan(bankName: 'Mahindra Finance', interestRate: 8.1, tenureMonths: 24, lockInMonths: 24, rating: 4.6, minInvestment: 5000, goal: 'Emergency Fund'),
-      FDPlan(bankName: 'IndusInd', interestRate: 7.75, tenureMonths: 18, lockInMonths: 18, rating: 4.4, minInvestment: 10000, goal: 'Short-Term'),
-      FDPlan(bankName: 'Canara Bank', interestRate: 6.7, tenureMonths: 36, lockInMonths: 36, rating: 4.1, minInvestment: 10000, goal: 'Retirement'),
-      FDPlan(bankName: 'Post Office', interestRate: 6.9, tenureMonths: 60, lockInMonths: 60, rating: 4.0, minInvestment: 1000, goal: 'Retirement'),
+    _loadFDPlans();
+    if (kDebugMode) {
+      print('ComparisonController initialized at ${_getFormattedTime()}');
+    }
+  }
+
+  void _loadFDPlans() {
+    // Mock data for FD plans
+    fdPlans.addAll([
+      FDPlan(
+        bankName: 'Suryoday Small Finance Bank',
+        interestRate: 9.1,
+        tenureMonths: 12,
+        issuerType: 'Bank',
+        isTaxSaving: false,
+      ),
+      FDPlan(
+        bankName: 'Bajaj Finance Ltd.',
+        interestRate: 8.5,
+        tenureMonths: 24,
+        issuerType: 'NBFC',
+        isTaxSaving: true,
+      ),
+      FDPlan(
+        bankName: 'HDFC Bank',
+        interestRate: 7.0,
+        tenureMonths: 36,
+        issuerType: 'Bank',
+        isTaxSaving: false,
+      ),
+      FDPlan(
+        bankName: 'ICICI Bank',
+        interestRate: 6.8,
+        tenureMonths: 18,
+        issuerType: 'Bank',
+        isTaxSaving: true,
+      ),
     ]);
+    if (kDebugMode) {
+      print('FD Plans loaded at ${_getFormattedTime()}: ${fdPlans.length} plans');
+    }
   }
 
-  // Method to get available FDs for a specific dropdown, excluding already selected FDs
-  List<FDPlan> getAvailableFDs(int fieldIndex) {
-    List<FDPlan?> otherSelections = selectedFDPlans.asMap().entries
-        .where((entry) => entry.key != fieldIndex)
-        .map((entry) => entry.value)
-        .toList();
-    return allFDPlans.where((plan) => !otherSelections.contains(plan)).toList();
+  List<FDPlan> getAvailableFDs(int slotIndex) {
+    // Return FD plans that are not selected in other slots
+    return fdPlans.where((plan) {
+      return !selectedFDPlans.any((selected) =>
+      selected != null && selected.bankName == plan.bankName && selected != selectedFDPlans[slotIndex]);
+    }).toList();
   }
 
-  // Method to update the selected FD plan for a given index
-  void updateSelectedFD(int index, FDPlan? plan) {
-    selectedFDPlans[index] = plan;
+  void updateSelectedFD(int slotIndex, FDPlan plan) {
+    selectedFDPlans[slotIndex] = plan;
+    if (kDebugMode) {
+      print('FD Plan selected at slot $slotIndex at ${_getFormattedTime()}: ${plan.bankName}');
+    }
+    selectedFDPlans.refresh();
   }
 
-  // Method to clear a selection
-  void clearSelection(int index) {
-    selectedFDPlans[index] = null;
+  void clearSelection(int slotIndex) {
+    selectedFDPlans[slotIndex] = null;
+    if (kDebugMode) {
+      print('FD Plan cleared at slot $slotIndex at ${_getFormattedTime()}');
+    }
+    selectedFDPlans.refresh();
+  }
+
+  void clearSelections() {
+    selectedFDPlans.value = List<FDPlan?>.filled(3, null);
+    if (kDebugMode) {
+      print('All FD selections cleared at ${_getFormattedTime()}');
+    }
+    selectedFDPlans.refresh();
   }
 }
