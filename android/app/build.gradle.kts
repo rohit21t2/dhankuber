@@ -1,9 +1,7 @@
 plugins {
     id("com.android.application")
-    // FlutterFire Configuration
-    id("com.google.gms.google-services")
+    id("com.google.gms.google-services") // Ensure this plugin is applied
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
@@ -27,6 +25,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        multiDexEnabled = true // Added for Firebase compatibility
     }
 
     buildTypes {
@@ -37,8 +36,9 @@ android {
 }
 
 dependencies {
-    implementation("com.google.firebase:firebase-auth-ktx:23.0.0") // Updated to latest version as of May 2025
-    // webview_flutter dependencies are handled by the Flutter plugin, no need to add here
+    implementation("com.google.firebase:firebase-auth-ktx:23.0.0")
+    implementation(platform("com.google.firebase:firebase-bom:33.2.0")) // Added Firebase BOM for consistency
+    implementation("androidx.multidex:multidex:2.0.1") // Added for multiDex support
 }
 
 flutter {

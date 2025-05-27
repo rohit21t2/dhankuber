@@ -10,14 +10,14 @@ dependencies:
   flutter:
     sdk: flutter
   get: ^4.6.6
-  firebase_core: ^3.6.0
-  firebase_auth: ^5.3.1
-  cloud_firestore: ^5.4.4
+  firebase_core: ^3.13.1 # Pinned to exact version
+  firebase_auth: ^5.5.4 # Pinned to exact version
+  cloud_firestore: ^5.6.8 # Already pinned
+  firebase_analytics: ^11.4.6 # Pinned to exact version
+  firebase_crashlytics: ^4.3.6 # Pinned to exact version
   flutter_secure_storage: ^9.2.2
   dio: ^5.7.0
   onesignal_flutter: ^5.2.0
-  firebase_analytics: ^11.3.0
-  firebase_crashlytics: ^4.1.1
   lottie: ^3.1.2
   flutter_svg: ^2.0.10
   local_auth: ^2.3.0
