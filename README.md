@@ -1,4 +1,4 @@
-Dhankuber
+Dhankuber App
 
 India's trusted platform to compare, invest, manage, and track family's FD/RD investments.
 
